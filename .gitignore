@@ -1,1 +1,3 @@
 api/design/node_modules/
+infra/.terraform/
+infra/.terraform.lock.hcl
