@@ -1,0 +1,16 @@
+type: object
+description: Devuelve un mensaje de un producto eliminado
+properties:
+  Data:
+    type: object    
+    properties:
+      id:
+        $ref: ../attributes/mongoId.yaml
+      statusCode:
+        $ref: ../attributes/code.yaml
+      message:
+        $ref: ../attributes/message.yaml
+    required:
+      - id
+      - statusCode
+      - message 

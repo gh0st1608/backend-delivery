@@ -1,0 +1,10 @@
+type: string
+enum:
+  - 'CARTA'
+  - 'DESAYUNO'
+  - 'FONDO'
+  - 'MERIENDA'
+  - 'CENA'
+description: >
+  Lista de códigos de tipo de comidas permitidas.
+example: ARROCES

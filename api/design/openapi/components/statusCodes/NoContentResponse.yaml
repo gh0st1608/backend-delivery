@@ -1,0 +1,13 @@
+description: No Content
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/error/StandardResponseError.yaml
+    example:
+      Error:
+        code: 204        
+        status: NO_CONTENT
+        dateTime: 2024-08-13 2024-08-12T16:33:12Z
+        title: solicitud exitosa, sin cuerpo de respuesta. 
+        message: La petición se ha completado con éxito pero su respuesta no tiene ningún contenido
+      Data: null

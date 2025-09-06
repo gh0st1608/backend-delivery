@@ -1,0 +1,10 @@
+name: $limit
+in: query
+description: >
+  'Número máximo de registros a mostrar por página'
+schema:
+  type: integer
+  format: int32
+  default: 25
+  minimum: 1
+required: false

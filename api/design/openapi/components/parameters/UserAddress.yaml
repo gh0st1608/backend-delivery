@@ -1,0 +1,7 @@
+name: x-user-address
+in: header
+description: IP del usuario que realiza la petición
+schema:
+  type: string
+  maxLength: 20
+  example: 192.54.134.155

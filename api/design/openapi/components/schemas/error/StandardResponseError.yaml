@@ -1,0 +1,8 @@
+properties:
+  Error:
+    $ref: ./StandardError.yaml
+  Data:
+    type: object
+required:
+  - Error
+  - Data

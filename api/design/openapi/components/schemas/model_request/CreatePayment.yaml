@@ -1,0 +1,32 @@
+type: object
+description: Entidad que permite registrar un pago realizado por un cliente
+properties:
+  Data:
+    type: object
+    properties:
+      Payment:
+        type: object
+        required:
+          - orderId
+          - provider
+          - state
+          - amountTotal
+          - currency
+          - datePayment
+        properties:
+          orderId:
+            $ref: ../attributes/mongoId.yaml
+          provider:
+            $ref: ../attributes/payment/providerPayment.yaml
+          state:
+            $ref: ../attributes/payment/statePayment.yaml
+          amountTotal:
+            $ref: ../attributes/products/price.yaml
+          currency:
+            $ref: ../attributes/currency.yaml
+          transactionId:
+            $ref: ../attributes/transactionId.yaml
+          datePayment:
+            $ref: ../attributes/payment/datePayment.yaml
+          description:
+            $ref: ../attributes/message.yaml

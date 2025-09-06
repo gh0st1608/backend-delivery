@@ -1,0 +1,4 @@
+type: string
+format: email
+description: Correo del usuario (requerido si authType es password)
+example: usuario@ejemplo.com

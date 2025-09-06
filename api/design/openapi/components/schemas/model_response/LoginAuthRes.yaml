@@ -1,0 +1,13 @@
+type: object
+description: Devuelve un mensaje de un autenticacion creado
+properties:
+  Data:
+    type: object    
+    properties:
+      statusCode:
+        $ref: ../attributes/code.yaml
+      message:
+        $ref: ../attributes/message.yaml
+    required:
+      - statusCode
+      - message 

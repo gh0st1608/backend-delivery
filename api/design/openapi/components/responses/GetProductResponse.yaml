@@ -1,0 +1,21 @@
+description: Retorna un producto
+content:
+  application/json:
+    schema:
+      allOf:
+        - $ref: ../schemas/model_response/StandardResponse.yaml
+        - $ref: ../schemas/model_response/GetProductRes.yaml
+    examples:
+      Caso-Prueba-01:
+        summary: Obtener un producto
+        value:
+          Data:
+            Product:
+              status: true
+              business: 'RESTAURANT'
+              type: 'CARTA'
+              name: 'ARROZ CON POLLO'
+              price : 10
+              category: 'ARROCES'
+              description: Arroz graneado con pollo fresco.
+              image: https://restaurante-images.s3.us-east-1.amazonaws.com/uploads/1743964953

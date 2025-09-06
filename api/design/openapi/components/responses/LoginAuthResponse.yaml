@@ -1,0 +1,20 @@
+description: Retorna mensaje de eliminación del orden o de resultado de login
+content:
+  application/json:
+    schema:
+      allOf:
+        - $ref: ../schemas/model_response/StandardResponse.yaml
+        - $ref: ../schemas/model_response/LoginAuthRes.yaml
+    examples:
+      Login-Exitoso:
+        summary: Respuesta de Login Exitoso
+        value:
+          Data:
+            statusCode: 200
+            message: "Inicio de sesión exitoso"
+      Login-Fallido:
+        summary: Respuesta de Login Fallido
+        value:
+          Data:
+            statusCode: 401
+            message: "Credenciales incorrectas. Verifique su correo electrónico y/o contraseña."

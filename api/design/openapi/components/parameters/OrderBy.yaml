@@ -1,0 +1,15 @@
+name: $orderby
+in: query
+description: >
+  Permite indicar los criterios de ordenación de una consulta.
+  El formato a utilizar será un signo + ó - para indicar si es
+  ascendente o descendente seguido del nombre de la columna o campo por el que
+  se ordena.
+schema:
+  type: array
+  items:
+    type: string
+    example: +id
+  maxItems: 100
+  uniqueItems: true
+required: false

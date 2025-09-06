@@ -1,0 +1,7 @@
+type: string
+description: Estado del producto
+enum:
+  - disponible     # Producto está disponible para la venta
+  - agotado        # Producto sin stock
+  - inactivo       # Producto temporalmente deshabilitado
+example: disponible

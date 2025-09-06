@@ -1,0 +1,27 @@
+type: object
+description: Entidad permite crear un pedido
+properties:
+  Data:
+    type: object
+    properties:
+      Order:
+        type: object
+        required:
+          - userId
+          - state
+          - paymentId
+          - totalAmount
+          - items
+        properties:
+          userId:
+            $ref: ../attributes/mongoId.yaml
+          state:
+            $ref: ../attributes/orders/stateOrder.yaml
+          paymentId:
+            $ref: ../attributes/mongoId.yaml
+          totalAmount:
+            $ref: ../attributes/products/price.yaml
+          items:
+            type: array
+            items:
+              $ref: ../attributes/item.yaml

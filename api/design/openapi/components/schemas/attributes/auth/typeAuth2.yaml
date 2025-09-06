@@ -1,0 +1,50 @@
+components:
+  schemas:
+    AuthRequest:
+      type: object
+      discriminator:
+        propertyName: authType
+        mapping:
+          password: '#/components/schemas/AuthPassword'
+          oauth: '#/components/schemas/AuthOAuth'
+      oneOf:
+        - $ref: '#/components/schemas/AuthPassword'
+        - $ref: '#/components/schemas/AuthOAuth'
+      description: Tipos de autenticación soportados en el sistema para login o registro.
+
+    AuthPassword:
+      type: object
+      required: [authType, user, password]
+      properties:
+        authType:
+          type: string
+          enum: [password]
+          description: Tipo de autenticación con usuario y contraseña.
+        user:
+          type: string
+          description: Correo electrónico o nombre de usuario.
+          example: usuario@example.com
+        password:
+          type: string
+          format: password
+          description: Contraseña del usuario.
+          example: P@ssw0rd!
+        captchaToken:
+          type: string
+          description: Token de reCAPTCHA (opcional, si se requiere validación anti-bot).
+
+    AuthOAuth:
+      type: object
+      required: [authType, oauthProvider, oauthToken]
+      properties:
+        authType:
+          type: string
+          enum: [oauth]
+          description: Tipo de autenticación mediante OAuth.
+        oauthProvider:
+          type: string
+          enum: [google, facebook, apple, github]
+          description: Proveedor externo usado para autenticación.
+        oauthToken:
+          type: string
+          description: Token OAuth entregado por el proveedor.

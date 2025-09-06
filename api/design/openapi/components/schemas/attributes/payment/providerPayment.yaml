@@ -1,0 +1,9 @@
+type: string
+description: Entidad del canal de pago final usado por el cliente
+enum:
+  - yape
+  - plin
+  - visa
+  - mastercard
+  - efectivo
+example: yape

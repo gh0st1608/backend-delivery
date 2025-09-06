@@ -1,0 +1,52 @@
+parameters:
+  - $ref: ../components/parameters/Channel.yaml
+  - $ref: ../components/parameters/ApiKey.yaml
+
+post:
+  summary: Create User
+  operationId: createUser
+  description: >
+    📦 Procesos: Creación de usuario con identificador único
+  
+  
+    🔧 Funcionalidad: Crear datos de usuario
+  
+      
+    🚀 Objetivo: Crear usuario
+  
+  
+    📌 Comentarios: 
+
+  tags:
+    - Users
+
+  requestBody:
+    $ref: ../components/requestBodies/CreateUserReq.yaml
+
+  responses:
+    '200':
+      $ref: ../components/responses/CreateUserResponse.yaml
+    '400':
+      $ref: ../components/statusCodes/BadRequestResponse.yaml
+    '401':
+      $ref: ../components/statusCodes/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../components/statusCodes/ForbiddenResponse.yaml
+    '404':
+      $ref: ../components/statusCodes/NotFoundResponse.yaml
+    '407':
+      $ref: ../components/statusCodes/ProxyAuthenticationResponse.yaml
+    '409':
+      $ref: ../components/statusCodes/ConflictResponse.yaml
+    '411':
+      $ref: ../components/statusCodes/LengthRequiredResponse.yaml
+    '414':
+      $ref: ../components/statusCodes/UriTooLongResponse.yaml
+    '429':
+      $ref: ../components/statusCodes/TooManyRequestsResponse.yaml
+    '500':
+      $ref: ../components/statusCodes/InternalServerErrorResponse.yaml
+    default:
+      $ref: ../components/statusCodes/UnexpectedErrorResponse.yaml
+  security:
+    - api_key: []

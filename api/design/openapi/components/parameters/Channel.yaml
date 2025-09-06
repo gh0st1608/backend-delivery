@@ -1,0 +1,10 @@
+name: channel
+in: header
+description: Canal de la aplicación.
+required: true
+schema:
+  type: string
+  enum: [APP,WEB,OIT]
+  minLength: 3
+  maxLength: 20
+  example: WEB

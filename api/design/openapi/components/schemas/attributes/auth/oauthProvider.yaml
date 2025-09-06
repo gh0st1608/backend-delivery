@@ -1,0 +1,8 @@
+type: string
+description: Proveedor externo usado para autenticación OAuth
+enum:
+  - google
+  - facebook
+  - apple
+  - github
+example: google

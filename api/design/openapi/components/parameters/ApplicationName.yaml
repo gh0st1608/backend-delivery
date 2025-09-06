@@ -1,0 +1,9 @@
+name: applicationName
+in: header
+description: Nombre de la aplicación que consume el servicio.
+required: true
+schema:
+  type: string
+  minLength: 5
+  maxLength: 30
+  example: SUPERAPP

@@ -1,0 +1,17 @@
+name: $exclude
+in: query
+description: >
+  Permite excluir determinados atributos del recurso.
+  Se recomienda su uso cuando se desea excluir algunos atributos de un recurso
+  complejo.
+  Puede especificarse como un array de atributos. Ver estándar de definición de
+  APIs.
+schema:
+  type: array
+  items:
+    type: string
+    example: id
+  maxItems: 100
+  uniqueItems: true
+required: false
+

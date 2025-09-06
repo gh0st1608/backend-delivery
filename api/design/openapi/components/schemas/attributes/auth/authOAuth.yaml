@@ -1,0 +1,15 @@
+type: object
+description: Autenticación usando proveedor OAuth.
+required:
+  - authType
+  - oauthProvider
+  - oauthToken
+properties:
+  authType:
+    $ref: ./typeAuth.yaml  # debe contener enum: [oauth]
+  oauthProvider:
+    $ref: ./oauthProvider.yaml
+  oauthToken:
+    type: string
+    description: Token OAuth del proveedor (requerido si authType es oauth)
+    example: ya29.A0ARrdaM...

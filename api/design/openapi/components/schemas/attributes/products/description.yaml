@@ -1,0 +1,5 @@
+type: string
+description: >
+  Nombre descriptivo del producto
+maxLength: 100
+example: 'Producto cubierto de adornos'

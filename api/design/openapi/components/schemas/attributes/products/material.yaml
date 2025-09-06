@@ -1,0 +1,9 @@
+type: string
+enum:
+  - ZIRCONIO
+  - PLATA
+  - ORO
+  - DIAMANTE
+description: >
+  Lista de códigos de tipo de encuentro permitidos. Solo se puede tener un codigo de encuentro dentro del array
+example: PLATA

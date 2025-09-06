@@ -1,0 +1,5 @@
+type: string
+description: >
+  Mensaje descriptivo de la solicitud
+maxLength: 100
+example: 'mensaje descriptivo de la solicitud'

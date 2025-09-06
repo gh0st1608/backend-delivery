@@ -1,0 +1,8 @@
+type: string
+description: Plataforma tecnológica que procesó el pago
+enum:
+  - culqi
+  - mercado_pago
+  - stripe
+  - none     # Si no se usó una pasarela (efectivo directo, por ejemplo)
+example: culqi

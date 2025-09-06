@@ -1,0 +1,17 @@
+description: Entidad para crear un usuario
+required: true
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/model_request/CreateUser.yaml
+    examples:
+      Caso-Prueba-01:
+        summary: Caso Prueba 01
+        value:
+          Data:
+            User:
+              name: "Juan Pérez"
+              email: "juanperez@email.com"
+              role: "customer" #admin | customer
+              phone: "987654321"
+              password: "MiClaveSegura123"

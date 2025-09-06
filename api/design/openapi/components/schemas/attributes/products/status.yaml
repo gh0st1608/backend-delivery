@@ -1,0 +1,7 @@
+type: boolean
+description: >
+  Tipo de status del producto
+example: true
+enum:
+  - true
+  - false

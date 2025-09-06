@@ -1,0 +1,31 @@
+type: object
+description: >
+  Selección de platos según el tipo de comida
+oneOf:
+  - title: ARROCES
+    type: object
+    properties:
+      category:
+        type: string
+        enum: [ARROCES]
+      name:
+        type: string
+        enum: [ARROZ A LA JARDINERA, ARROZ CHAUFA, ARROZ CON POLLO]
+    required: [category, name]
+    example:
+      category: ARROCES
+      name: ARROZ CON POLLO
+
+  - title: PASTAS
+    type: object
+    properties:
+      category:
+        type: string
+        enum: [PASTAS]
+      name:
+        type: string
+        enum: [FIDEO EN SALSA BLANCA, TALLARIN ROJO, TALLARIN VERDE]
+    required: [category, name]
+    example:
+      category: PASTAS
+      name: FIDEO EN SALSA BLANCA

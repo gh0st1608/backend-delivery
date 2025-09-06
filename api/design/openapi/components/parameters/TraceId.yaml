@@ -1,0 +1,11 @@
+name: traceId
+in: header
+description: Identificador unico de la transacción
+required: true
+schema:
+  type: string
+  format: uuid
+  minLength: 36
+  maxLength: 36
+  pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+  example: 62977d46-7a50-41c9-8d84-38272ac2a8df

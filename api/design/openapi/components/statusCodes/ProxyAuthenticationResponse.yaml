@@ -1,0 +1,13 @@
+description: Proxy Authentication Required
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/error/StandardResponseError.yaml
+    example:
+      Error:
+        code: 407        
+        status: PROXY_AUTHENTICATION_REQUIRED
+        dateTime: 2024-08-13 2024-08-12T16:33:12Z
+        title: autenticación requerida a partir de un proxy.
+        message: la autenticación debe estar hecha a partir de un proxy
+      Data: null

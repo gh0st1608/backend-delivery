@@ -1,0 +1,13 @@
+description: Unsupported Media Type
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/error/StandardResponseError.yaml
+    example:
+      Error:
+        code: 415        
+        status: UNSUPPORTED_MEDIA_TYPE
+        dateTime: 2024-08-13 2024-08-12T16:33:12Z
+        title: Media Type no soportado 
+        message: El formato multimedia de los datos solicitados no está soportado por el servidor
+      Data: null

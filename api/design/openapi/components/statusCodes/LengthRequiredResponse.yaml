@@ -1,0 +1,13 @@
+description: Length Required
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/error/StandardResponseError.yaml
+    example:
+      Error:
+        code: 411        
+        status: LENGTH_REQUIRED
+        dateTime: 2024-08-13 2024-08-12T16:33:12Z
+        title: encabezado “content-length” no está definido. 
+        message: El servidor rechaza la petición porque el campo de encabezado Content-Length no esta definido.
+      Data: null

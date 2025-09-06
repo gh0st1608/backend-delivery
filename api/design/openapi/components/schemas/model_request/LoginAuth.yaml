@@ -1,0 +1,16 @@
+type: object
+description: Esquema para autenticar un usuario en el sistema
+properties:
+  Data:
+    type: object
+    properties:
+      Login:
+        description: Tipos de autenticación soportados por el sistema.
+        oneOf:
+          - $ref: ../attributes/auth/authPassword.yaml
+          - $ref: ../attributes/auth/authOAuth.yaml
+        discriminator:
+          propertyName: authType
+          mapping:
+            password: ../attributes/auth/authPassword.yaml
+            oauth: ../attributes/auth/authOAuth.yaml

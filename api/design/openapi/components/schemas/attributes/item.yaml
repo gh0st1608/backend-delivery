@@ -1,0 +1,23 @@
+type: object
+properties:
+  productId:
+    type: string
+    format: uuid
+    description: ID del producto
+  name:
+    type: string
+    description: Nombre del producto
+  quantity:
+    type: integer
+    minimum: 1
+    description: Cantidad solicitada del producto
+  unitPrice:
+    type: number
+    format: float
+    minimum: 0
+    description: Precio unitario del producto
+required:
+  - productId
+  - name
+  - quantity
+  - unitPrice
