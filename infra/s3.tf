@@ -2,7 +2,7 @@ module "s3_bucket" {
   source = "terraform-aws-modules/s3-bucket/aws"
   version = "4.1.2"
 
-  bucket = "my-s3-bucket"
+  bucket = "foodstore-design"
   acl    = "public-read"
 
   control_object_ownership = true
