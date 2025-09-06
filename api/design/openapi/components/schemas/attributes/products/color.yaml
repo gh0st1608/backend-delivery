@@ -1,0 +1,11 @@
+type: array
+items:
+  type: string
+  enum:
+    - BLACK
+    - GOLD
+    - YELLOW
+    - BLUE
+description: >
+  Lista de códigos de tipo de encuentro permitidos. Solo se puede tener un codigo de encuentro dentro del array
+example: ['BLUE','BLACK']

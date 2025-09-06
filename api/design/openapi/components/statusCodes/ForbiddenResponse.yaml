@@ -1,0 +1,13 @@
+description: Forbidden
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/error/StandardResponseError.yaml
+    example:
+      Error:
+        code: 403        
+        status: FORBIDDEN
+        dateTime: 2024-08-13 2024-08-12T16:33:12Z
+        title: El cliente no posee los permisos necesarios para cierto contenido.
+        message: El cliente no está autorizado a realizar la petición.
+      data: null

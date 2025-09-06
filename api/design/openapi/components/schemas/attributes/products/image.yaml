@@ -1,0 +1,6 @@
+type: string
+description: >
+  URL válida que representa el recurso
+maxLength: 2083  # Longitud máxima típica para URLs (puedes ajustarla)
+example: https://www.ejemplo.com/recurso
+pattern: ^https?:\/\/[^\s/$.?#].[^\s]*$

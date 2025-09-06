@@ -1,0 +1,8 @@
+type: string
+description: Estado del pedido
+enum:
+  - pendiente     # Pedido recibido, pendiente de preparación
+  - en_proceso    # Pedido en preparación o en camino
+  - entregado     # Pedido entregado al cliente
+  - cancelado     # Pedido cancelado por el cliente o sistema
+example: pendiente

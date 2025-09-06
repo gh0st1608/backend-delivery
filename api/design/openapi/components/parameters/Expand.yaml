@@ -1,0 +1,14 @@
+in: query
+name: $expand
+description: >
+  Indica una lista de subatributos que se desea expandir.
+  Puede especificarse como un array de atributos. Ver estándar de definición de
+  APIs.
+schema:
+  type: array
+  items:
+    type: string
+    example: children
+  maxItems: 100
+  uniqueItems: true
+required: false

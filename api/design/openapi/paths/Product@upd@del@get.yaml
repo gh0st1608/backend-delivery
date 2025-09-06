@@ -1,0 +1,155 @@
+parameters:
+  - $ref: ../components/parameters/Channel.yaml
+  - $ref: ../components/parameters/ApiKey.yaml
+  - name: id
+    in: path
+    description: identificador unico del recurso Product Fhir
+    required: true
+    schema:
+      type: string
+      format: uuid
+      minLength: 36
+      maxLength: 36
+      pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+      example: 13eddde5-40f7-4d6d-a007-18c696e9fd56
+delete:
+  summary: Delete Product
+  operationId: deleteProduct
+  description: >
+    📦 Procesos: Eliminar producto con identificador
+  
+  
+    🔧 Funcionalidad: Eliminar datos del producto
+  
+      
+    🚀 Objetivo: Eliminar producto
+  
+  
+    📌 Comentarios: 
+
+  tags:
+    - Products
+  
+  responses:
+    '200':
+      $ref: ../components/responses/DeleteProductResponse.yaml
+    '400':
+      $ref: ../components/statusCodes/BadRequestResponse.yaml
+    '401':
+      $ref: ../components/statusCodes/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../components/statusCodes/ForbiddenResponse.yaml
+    '404':
+      $ref: ../components/statusCodes/NotFoundResponse.yaml
+    '407':
+      $ref: ../components/statusCodes/ProxyAuthenticationResponse.yaml
+    '409':
+      $ref: ../components/statusCodes/ConflictResponse.yaml
+    '411':
+      $ref: ../components/statusCodes/LengthRequiredResponse.yaml
+    '414':
+      $ref: ../components/statusCodes/UriTooLongResponse.yaml
+    '429':
+      $ref: ../components/statusCodes/TooManyRequestsResponse.yaml
+    '500':
+      $ref: ../components/statusCodes/InternalServerErrorResponse.yaml
+    default:
+      $ref: ../components/statusCodes/UnexpectedErrorResponse.yaml
+  security:
+    - api_key: []
+
+get:
+  summary: Get Product
+  operationId: getProduct
+  description: >
+    📦 Procesos: Obtener el producto con identificador
+  
+  
+    🔧 Funcionalidad: Obtener datos de la producto
+  
+      
+    🚀 Objetivo: Obtener producto
+  
+  
+    📌 Comentarios: 
+
+  tags:
+    - Products
+  
+  responses:
+    '200':
+      $ref: ../components/responses/GetProductResponse.yaml
+    '400':
+      $ref: ../components/statusCodes/BadRequestResponse.yaml
+    '401':
+      $ref: ../components/statusCodes/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../components/statusCodes/ForbiddenResponse.yaml
+    '404':
+      $ref: ../components/statusCodes/NotFoundResponse.yaml
+    '407':
+      $ref: ../components/statusCodes/ProxyAuthenticationResponse.yaml
+    '409':
+      $ref: ../components/statusCodes/ConflictResponse.yaml
+    '411':
+      $ref: ../components/statusCodes/LengthRequiredResponse.yaml
+    '414':
+      $ref: ../components/statusCodes/UriTooLongResponse.yaml
+    '429':
+      $ref: ../components/statusCodes/TooManyRequestsResponse.yaml
+    '500':
+      $ref: ../components/statusCodes/InternalServerErrorResponse.yaml
+    default:
+      $ref: ../components/statusCodes/UnexpectedErrorResponse.yaml
+  security:
+    - api_key: []
+
+put:
+  summary: Update Product
+  operationId: updateProduct
+  description: >
+    📦 Procesos: Actualizar producto con identificador
+  
+  
+    🔧 Funcionalidad: Actualizar datos del producto
+  
+      
+    🚀 Objetivo: Actualizar producto
+  
+  
+    📌 Comentarios: 
+
+  tags:
+    - Products
+  
+  requestBody:
+    $ref: ../components/requestBodies/UpdateProductReq.yaml
+
+  responses:
+    '200':
+      $ref: ../components/responses/UpdateProductResponse.yaml
+    '400':
+      $ref: ../components/statusCodes/BadRequestResponse.yaml
+    '401':
+      $ref: ../components/statusCodes/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../components/statusCodes/ForbiddenResponse.yaml
+    '404':
+      $ref: ../components/statusCodes/NotFoundResponse.yaml
+    '407':
+      $ref: ../components/statusCodes/ProxyAuthenticationResponse.yaml
+    '409':
+      $ref: ../components/statusCodes/ConflictResponse.yaml
+    '411':
+      $ref: ../components/statusCodes/LengthRequiredResponse.yaml
+    '414':
+      $ref: ../components/statusCodes/UriTooLongResponse.yaml
+    '429':
+      $ref: ../components/statusCodes/TooManyRequestsResponse.yaml
+    '500':
+      $ref: ../components/statusCodes/InternalServerErrorResponse.yaml
+    default:
+      $ref: ../components/statusCodes/UnexpectedErrorResponse.yaml
+
+  security:
+    - api_key: []

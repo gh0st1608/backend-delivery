@@ -1,0 +1,18 @@
+type: object
+properties:
+  nombre:
+    type: string
+  email:
+    type: string
+    format: email
+  telefono:
+    type: string
+  direccion:
+    type: string
+  password:
+    type: string
+    format: password
+required:
+  - nombre
+  - email
+  - password

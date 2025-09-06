@@ -1,0 +1,12 @@
+description: Accepted
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/error/StandardResponseError.yaml
+    example:
+      Data:
+        code: 202        
+        status: ACCEPTED
+        dateTime: 2024-08-13 2024-08-12T16:33:12Z
+        title: Solicitud de registro con éxito
+        message: null.

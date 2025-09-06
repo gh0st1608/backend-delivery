@@ -1,0 +1,25 @@
+required: true
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/model_request/LoginAuth.yaml
+    examples:
+      Login-Contrasena:
+        summary: Login con email y contraseña
+        value:
+          Data:
+            Login:
+              authType: password
+              email: "erickmga123@gmail.com"
+              password: "Er1ck123!"
+              captchaToken: "03AGdBq24..."  # opcional
+
+      Login-OAuth:
+        summary: Login con OAuth (Google)
+        value:
+          Data:
+            Login:
+              authType: oauth
+              oauthProvider: google
+              oauthToken: "ya29.A0ARrdaM..."
+              captchaToken: "03AGdBq24..."  # opcional

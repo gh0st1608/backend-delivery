@@ -1,0 +1,28 @@
+type: object
+description: Devuelve un item de producto
+properties:
+  Data:
+    type: object
+    properties:
+      Product:
+        type: object
+        properties:
+          status:
+            $ref: ../attributes/products/status.yaml
+          business:
+            $ref: ../attributes/products/business.yaml
+          type:
+            $ref: ../attributes/products/type.yaml
+          name:
+            $ref: ../attributes/products/name.yaml
+          price:
+            $ref: ../attributes/products/price.yaml
+          category:
+            $ref: ../attributes/products/category.yaml
+          description:
+            $ref: ../attributes/products/description.yaml
+          image:
+            $ref: ../attributes/products/image.yaml
+
+
+          

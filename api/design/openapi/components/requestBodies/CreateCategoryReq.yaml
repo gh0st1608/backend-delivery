@@ -1,0 +1,16 @@
+description: Entidad para crear una categoría
+required: true
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/model_request/CreateCategory.yaml
+    examples:
+      Caso-Prueba-01:
+        summary: Caso Prueba 01
+        value:
+          Data:
+            Category:
+              business: "RESTAURANT"
+              name: "ARROCES"
+              active: true 
+

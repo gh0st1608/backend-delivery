@@ -1,0 +1,155 @@
+parameters:
+  - $ref: ../components/parameters/Channel.yaml
+  - $ref: ../components/parameters/ApiKey.yaml
+  - name: id
+    in: path
+    description: identificador unico del recurso User
+    required: true
+    schema:
+      type: string
+      format: uuid
+      minLength: 36
+      maxLength: 36
+      pattern: '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+      example: 13eddde5-40f7-4d6d-a007-18c696e9fd56
+delete:
+  summary: Delete User
+  operationId: deleteUser
+  description: >
+    📦 Procesos: Eliminar usuario con identificador
+  
+  
+    🔧 Funcionalidad: Eliminar datos del usuario
+  
+      
+    🚀 Objetivo: Eliminar usuario
+  
+  
+    📌 Comentarios: 
+
+  tags:
+    - Users
+  
+  responses:
+    '200':
+      $ref: ../components/responses/DeleteUserResponse.yaml
+    '400':
+      $ref: ../components/statusCodes/BadRequestResponse.yaml
+    '401':
+      $ref: ../components/statusCodes/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../components/statusCodes/ForbiddenResponse.yaml
+    '404':
+      $ref: ../components/statusCodes/NotFoundResponse.yaml
+    '407':
+      $ref: ../components/statusCodes/ProxyAuthenticationResponse.yaml
+    '409':
+      $ref: ../components/statusCodes/ConflictResponse.yaml
+    '411':
+      $ref: ../components/statusCodes/LengthRequiredResponse.yaml
+    '414':
+      $ref: ../components/statusCodes/UriTooLongResponse.yaml
+    '429':
+      $ref: ../components/statusCodes/TooManyRequestsResponse.yaml
+    '500':
+      $ref: ../components/statusCodes/InternalServerErrorResponse.yaml
+    default:
+      $ref: ../components/statusCodes/UnexpectedErrorResponse.yaml
+  security:
+    - api_key: []
+
+get:
+  summary: Get User
+  operationId: getUser
+  description: >
+    📦 Procesos: Obtener el usuario con identificador
+  
+  
+    🔧 Funcionalidad: Obtener datos de la usuario
+  
+      
+    🚀 Objetivo: Obtener usuario
+  
+  
+    📌 Comentarios: 
+
+  tags:
+    - Users
+  
+  responses:
+    '200':
+      $ref: ../components/responses/GetUserResponse.yaml
+    '400':
+      $ref: ../components/statusCodes/BadRequestResponse.yaml
+    '401':
+      $ref: ../components/statusCodes/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../components/statusCodes/ForbiddenResponse.yaml
+    '404':
+      $ref: ../components/statusCodes/NotFoundResponse.yaml
+    '407':
+      $ref: ../components/statusCodes/ProxyAuthenticationResponse.yaml
+    '409':
+      $ref: ../components/statusCodes/ConflictResponse.yaml
+    '411':
+      $ref: ../components/statusCodes/LengthRequiredResponse.yaml
+    '414':
+      $ref: ../components/statusCodes/UriTooLongResponse.yaml
+    '429':
+      $ref: ../components/statusCodes/TooManyRequestsResponse.yaml
+    '500':
+      $ref: ../components/statusCodes/InternalServerErrorResponse.yaml
+    default:
+      $ref: ../components/statusCodes/UnexpectedErrorResponse.yaml
+  security:
+    - api_key: []
+
+put:
+  summary: Update User
+  operationId: updateUser
+  description: >
+    📦 Procesos: Actualizar usuario con identificador
+  
+  
+    🔧 Funcionalidad: Actualizar datos del usuario
+  
+      
+    🚀 Objetivo: Actualizar usuario
+  
+  
+    📌 Comentarios: 
+
+  tags:
+    - Users
+  
+  requestBody:
+    $ref: ../components/requestBodies/UpdateUserReq.yaml
+
+  responses:
+    '200':
+      $ref: ../components/responses/UpdateUserResponse.yaml
+    '400':
+      $ref: ../components/statusCodes/BadRequestResponse.yaml
+    '401':
+      $ref: ../components/statusCodes/UnauthorizedResponse.yaml
+    '403':
+      $ref: ../components/statusCodes/ForbiddenResponse.yaml
+    '404':
+      $ref: ../components/statusCodes/NotFoundResponse.yaml
+    '407':
+      $ref: ../components/statusCodes/ProxyAuthenticationResponse.yaml
+    '409':
+      $ref: ../components/statusCodes/ConflictResponse.yaml
+    '411':
+      $ref: ../components/statusCodes/LengthRequiredResponse.yaml
+    '414':
+      $ref: ../components/statusCodes/UriTooLongResponse.yaml
+    '429':
+      $ref: ../components/statusCodes/TooManyRequestsResponse.yaml
+    '500':
+      $ref: ../components/statusCodes/InternalServerErrorResponse.yaml
+    default:
+      $ref: ../components/statusCodes/UnexpectedErrorResponse.yaml
+
+  security:
+    - api_key: []

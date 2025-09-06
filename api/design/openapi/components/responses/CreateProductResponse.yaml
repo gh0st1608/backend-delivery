@@ -1,0 +1,16 @@
+description: Retorna mensaje de creación de producto
+content:
+  application/json:
+    schema:
+      allOf:
+        - $ref: ../schemas/model_response/StandardResponse.yaml
+        - $ref: ../schemas/model_response/CreateProductRes.yaml
+    examples:
+      Caso-Prueba-01:
+        summary: Crear producto
+        value:
+          Data:
+            id: 3b24cf17-8908-4fe0-ac09-fbd9174685f1
+            statusCode: 200
+            message: Creación de producto exitosa
+            

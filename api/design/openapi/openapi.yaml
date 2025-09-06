@@ -1,0 +1,59 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: API de Negocio Foodstore
+  description: >
+    API de negocio Foodstore, donde se define los alcances recursos.
+      Recuros:
+
+        - Product
+        - 
+
+  contact:
+    name: Erick Galindo Aguilar
+    email: erickmga123@gmail.com
+    url: 'https://storage.googleapis.com/foodstore-design-dev/foodstore-dev.html'
+    x-role: API Designer
+  x-catalog:
+    x-id-proxy: api-ne-foodstore
+    x-id-product: internal-product-dev-foodstore
+    x-id-catalog: api-ne-foodstore
+servers:
+  - url: 'https://api-dev.cuidaco.pe/api-ne-foodstore/v1'
+    description: Servidor de ambiente Desarrollo
+
+tags:
+  - name: Products
+    description: >
+      Agrupa los servicios de gestión sobre el recurso de: Producto
+  - name: Orders
+    description: >
+      Agrupa los servicios de gestión sobre el recurso de: Orden
+  - name: Payments
+    description: >
+      Agrupa los servicios de gestión sobre el recurso de: Pago
+  - name: Auths
+    description: >
+      Agrupa los servicios de gestión sobre el recurso de: Auth
+
+paths: 
+  '/products/register':
+    $ref: 'paths/Product@create.yaml'
+  '/orders/register':
+    $ref: 'paths/Order@create.yaml'
+  '/payments/register':
+    $ref: 'paths/Payment@create.yaml'
+  '/products/{id}':
+    $ref: 'paths/Product@upd@del@get.yaml'
+  '/auths/login':
+    $ref: 'paths/Auth@login.yaml'
+  #'/auths/register':
+  #  $ref: 'paths/Auth@register'  
+
+components:
+  securitySchemes:
+    api_key:
+      description: Código único del Cliente.
+      type: "apiKey"
+      name: "x-api-key"
+      in: "header"

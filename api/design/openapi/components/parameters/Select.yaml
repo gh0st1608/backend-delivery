@@ -1,0 +1,17 @@
+name: $select
+in: query
+description: >
+  Permite seleccionar los atributos del recurso que se desean obtener en la
+  consulta.
+  Se recomienda su uso cuando sólo se desea obtener unos pocos atributos de un
+  recurso complejo.
+  Puede especificarse como un array de atributos. Ver estándar de definición de
+  APIs.
+schema:
+  type: array
+  items:
+    type: string
+    example: id
+  maxItems: 100
+  uniqueItems: true
+required: false

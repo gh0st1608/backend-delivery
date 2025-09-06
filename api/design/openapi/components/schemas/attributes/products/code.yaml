@@ -1,0 +1,7 @@
+type: number
+format: double
+description: >
+  Mapeo interno de los códigos de sistemas
+maximum: 999996
+minimum: 1
+example: 1099

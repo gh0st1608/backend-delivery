@@ -1,0 +1,10 @@
+type: string
+description: Método técnico utilizado para realizar el pago
+enum:
+  - qr             # Escaneo de código QR desde una app
+  - tarjeta        # Tarjeta física o virtual (crédito/débito)
+  - efectivo       # Pago con dinero en efectivo
+  - link           # Enlace de pago compartido al cliente
+  - transferencia  # Transferencia bancaria directa
+  - pos            # Terminal de punto de venta (POS físico)
+example: qr

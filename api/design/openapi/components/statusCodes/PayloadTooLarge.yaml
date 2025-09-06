@@ -1,0 +1,13 @@
+description: Payload Too Large
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/error/StandardResponseError.yaml
+    example:
+      Error:
+        code: 413        
+        status: PAYLOAD_TOO_LARGE
+        dateTime: 2024-08-13 2024-08-12T16:33:12Z
+        title: Payload demasiado largo.
+        message: La entidad de petición es más larga que los límites definidos por el servidor
+      Data: null

@@ -1,0 +1,15 @@
+description: Retorna mensaje de actualización del producto
+content:
+  application/json:
+    schema:
+      allOf:
+        - $ref: ../schemas/model_response/StandardResponse.yaml
+        - $ref: ../schemas/model_response/UpdateProductRes.yaml
+    examples:
+      Caso-Prueba-01:
+        summary: Actualizar producto
+        value:
+          Data:
+            id: 3b24cf17-8908-4fe0-ac09-fbd9174685f1
+            statusCode: 200
+            message: Actualización de producto exitosa

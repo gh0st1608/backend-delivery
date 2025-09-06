@@ -1,0 +1,13 @@
+name: provider
+in: header
+description: Nombre de la prestadora que consume el servicio.
+required: true
+schema:
+  type: string
+  maxLength: 30
+  example: cuida
+  enum:
+    - CUIDA
+    - CI
+    - AUNA
+    - JOCKEY

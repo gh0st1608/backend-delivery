@@ -1,0 +1,8 @@
+type: string
+description: Estado del pago
+enum:
+  - pendiente    # Aún no se ha confirmado el pago
+  - confirmado   # Pago aprobado o recibido
+  - fallido      # Pago rechazado o con error
+  - reembolsado  # Pago devuelto
+example: confirmado

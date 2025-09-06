@@ -1,0 +1,10 @@
+type: string
+enum:
+  - 'ARROCES'
+  - 'CAUSAS'
+  - 'MARINOS'
+  - 'CRIOLLOS'
+  - 'PASTAS'
+description: >
+  Lista de códigos de tipo de comidas permitidas.
+example: ARROCES
