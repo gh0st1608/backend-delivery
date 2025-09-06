@@ -18,6 +18,11 @@ module "s3_bucket" {
     error_document = "error.html"
   }
 
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+
   # 🔹 política pública opcional para servir archivos
   attach_policy = true
   policy        = jsonencode({
