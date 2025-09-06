@@ -24,6 +24,6 @@ artifacts:
 post_build:
   commands:
     - echo "Copiando archivos a S3..."
-    - aws s3 cp api/design/dist/ s3://foodstore-design-dev/ --recursive
+    - aws s3 cp api/design/dist/ s3://foodstore-design/ --recursive
     - echo "Haciendo público el HTML..."
-    - aws s3api put-object-acl --bucket foodstore-design-dev --key foodstore-dev.html --acl public-read
+    - aws s3api put-object-acl --bucket foodstore-design --key foodstore-dev.html --acl public-read
