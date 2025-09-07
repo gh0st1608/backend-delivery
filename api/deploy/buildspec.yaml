@@ -15,15 +15,14 @@ phases:
       - npm run build
       - npm run build-html
 
+  post_build:
+    commands:
+      - echo "Copiando archivos a S3..."
+      - aws s3 cp dist/ s3://foodstore-design/ --recursive
+      - echo "Haciendo público el HTML..."
+      - aws s3api put-object-acl --bucket foodstore-design --key foodstore.html --acl public-read
+
 artifacts:
   files:
     - '**/*'
   base-directory: api/design/dist
-
-# Post-build: copiar a S3 y hacer público
-post_build:
-  commands:
-    - echo "Copiando archivos a S3..."
-    - aws s3 cp api/design/dist/ s3://foodstore-design/ --recursive
-    - echo "Haciendo público el HTML..."
-    - aws s3api put-object-acl --bucket foodstore-design --key foodstore-dev.html --acl public-read
