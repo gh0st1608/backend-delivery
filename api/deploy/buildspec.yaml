@@ -5,7 +5,7 @@ phases:
     runtime-versions:
       nodejs: 20
     commands:
-      - echo "Instalando dependencias..."
+      - echo "Instalando dependencias.."
       - cd api/design
       - npm install
 
