@@ -7,8 +7,8 @@
     "private": true,
     "scripts": {
         "start": "openapi preview-docs --port 8084 openapi/openapi.yaml",
-        "build": "openapi bundle -o dist/foodstore-dev.yaml",
-        "build-html": "redoc-cli bundle ./dist/foodstore-dev.yaml --output ./dist/foodstore-dev.html -t ./docs/index.html",
+        "build": "openapi bundle -o dist/foodstore.yaml",
+        "build-html": "redoc-cli bundle ./dist/foodstore.yaml --output ./dist/foodstore.html -t ./docs/index.html",
         "test": "openapi validate"
     },
     "devDependencies": {
