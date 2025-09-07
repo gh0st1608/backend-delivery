@@ -42,3 +42,20 @@ resource "aws_codebuild_project" "design" {
     }
   }
 }
+
+resource "aws_codebuild_webhook" "design" {
+  project_name = aws_codebuild_project.design.name
+
+  filter_group {
+    filter {
+      type    = "EVENT"
+      pattern = "PUSH"
+    }
+
+    filter {
+      type    = "HEAD_REF"
+      pattern = "^refs/heads/design$"
+    }
+  }
+}
+
