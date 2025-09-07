@@ -36,6 +36,18 @@ resource "aws_iam_role_policy" "codebuild_s3_policy" {
           "s3:PutObjectAcl"
         ]
         Resource = "arn:aws:s3:::foodstore-design/*"
+      },
+      # 🔹 Permisos para CloudWatch Logs
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = [
+          "arn:aws:logs:us-east-1:${data.aws_caller_identity.current.account_id}:log-group:/aws/codebuild/build-design-foodstore*"
+        ]
       }
     ]
   })
