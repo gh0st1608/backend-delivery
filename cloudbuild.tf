@@ -1,8 +1,8 @@
 resource "aws_codebuild_project" "design" {
   name          = "build-design-foodstore"
-  description   = ""
+  description   = "Compila y despliega el diseño en S3"
   build_timeout = 15
-  service_role  = "arn:aws:iam::248268265208:role/service-role/codebuild-build-design-foodstore-service-role"
+  service_role  = aws_iam_role.codebuild_service_role.arn
 
   artifacts {
     type = "NO_ARTIFACTS"
@@ -45,6 +45,7 @@ resource "aws_codebuild_project" "design" {
 
 resource "aws_codebuild_webhook" "design" {
   project_name = aws_codebuild_project.design.name
+  build_type = "BUILD" # compilación normal
 
   filter_group {
     filter {
