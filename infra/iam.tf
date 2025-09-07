@@ -16,7 +16,7 @@ data "aws_iam_policy_document" "codebuild_assume" {
 
 resource "aws_iam_role_policy" "codebuild_s3_policy" {
   name = "codebuild-s3-upload"
-  role = aws_iam_role.codebuild_service_role.name # ajusta al nombre/ARN de tu rol existente
+  role = aws_iam_role.codebuild_service_role.name
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -24,17 +24,19 @@ resource "aws_iam_role_policy" "codebuild_s3_policy" {
       {
         Effect = "Allow"
         Action = [
-          "s3:PutObject",
-          "s3:PutObjectAcl",
-          "s3:GetObject",
           "s3:ListBucket"
         ]
-        Resource = [
-          "arn:aws:s3:::foodstore-design",
-          "arn:aws:s3:::foodstore-design/*"
+        Resource = "arn:aws:s3:::foodstore-design"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:PutObjectAcl"
         ]
+        Resource = "arn:aws:s3:::foodstore-design/*"
       }
     ]
   })
 }
-
