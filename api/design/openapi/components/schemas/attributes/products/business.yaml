@@ -1,7 +1,0 @@
-type: string
-enum:
-  - 'JOYERIA'
-  - 'RESTAURANT'
-description: >
-  Lista de códigos de tipo de comidas permitidas.
-example: 'RESTAURANT'

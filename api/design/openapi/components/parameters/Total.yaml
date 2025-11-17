@@ -1,9 +1,0 @@
-name: $total
-in: query
-description: >
-  Indica si se deben calcular y devolver el atributo total en el objeto paging
-  de la respuesta estándar.
-schema:
-  type: boolean
-  default: false
-required: false

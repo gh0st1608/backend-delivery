@@ -1,3 +1,0 @@
-type: string
-description: ID o código de la transacción generado por la pasarela
-example: PAYID-ABC123

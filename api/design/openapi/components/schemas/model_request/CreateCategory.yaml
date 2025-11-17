@@ -1,6 +1,0 @@
-type: object
-properties:
-  nombre:
-    type: string
-required:
-  - nombre

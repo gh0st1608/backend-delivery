@@ -1,3 +1,0 @@
-type: string
-description: Tipo de autenticación
-enum: [password, oauth]

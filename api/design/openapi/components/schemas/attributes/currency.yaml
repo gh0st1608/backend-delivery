@@ -1,6 +1,0 @@
-type: string
-description: Moneda usada en el pago (código ISO 4217)
-enum:
-  - PEN
-  - USD
-example: PEN

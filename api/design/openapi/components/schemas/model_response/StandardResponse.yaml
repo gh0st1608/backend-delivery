@@ -1,5 +1,0 @@
-properties:
-  Data:
-    type: object
-required:
-  - Data

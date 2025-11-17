@@ -1,8 +1,0 @@
-type: string
-description: Tipo o rol del usuario registrado
-enum:
-  - cliente
-  - repartidor
-  - administrador
-  - staff
-example: cliente
