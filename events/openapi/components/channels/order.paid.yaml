@@ -1,0 +1,5 @@
+description: Evento cuando una orden ha sido pagada
+subscribe:
+  summary: Escucha el evento cuando una orden es pagada exitosamente
+  message:
+    $ref: '../messages/OrderPaid.yaml'

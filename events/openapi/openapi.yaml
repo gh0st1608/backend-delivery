@@ -1,0 +1,10 @@
+openapi: 3.0.3
+info:
+  title: Placeholder API
+  version: 1.0.0
+  contact:
+    name: Erick Galindo Aguilar
+    email: erickmga123@gmail.com
+    url: 'https://storage.googleapis.com/foodstore-design-dev/foodstore-dev.html'
+    x-role: API Designer
+paths: {}

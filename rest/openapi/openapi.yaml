@@ -3,12 +3,11 @@ info:
   version: 1.0.0
   title: API de Negocio Foodstore
   description: >
-    API de negocio Foodstore, donde se define los alcances recursos.
-      Recuros:
-
-        - Product
-        - 
-
+    API de negocio Foodstore, donde se definen los recursos del dominio:
+      - Product
+      - Order
+      - Payment
+      - Auth
   contact:
     name: Erick Galindo Aguilar
     email: erickmga123@gmail.com
@@ -18,23 +17,20 @@ info:
     x-id-proxy: api-ne-foodstore
     x-id-product: internal-product-dev-foodstore
     x-id-catalog: api-ne-foodstore
+
 servers:
   - url: 'https://api-dev.cuidaco.pe/api-ne-foodstore/v1'
-    description: Servidor de ambiente Desarrollo
+    description: Servidor de ambiente de desarrollo
 
 tags:
   - name: Products
-    description: >
-      Agrupa los servicios de gestión sobre el recurso de: Producto
+    description: Agrupa los servicios de gestión sobre el recurso Producto.
   - name: Orders
-    description: >
-      Agrupa los servicios de gestión sobre el recurso de: Orden
+    description: Agrupa los servicios de gestión sobre el recurso Orden.
   - name: Payments
-    description: >
-      Agrupa los servicios de gestión sobre el recurso de: Pago
+    description: Agrupa los servicios de gestión sobre el recurso Pago.
   - name: Auths
-    description: >
-      Agrupa los servicios de gestión sobre el recurso de: Auth
+    description: Agrupa los servicios de gestión sobre el recurso Auth.
 
 paths: 
   '/products/register':
@@ -48,12 +44,13 @@ paths:
   '/auths/login':
     $ref: 'paths/Auth@login.yaml'
   #'/auths/register':
-  #  $ref: 'paths/Auth@register'  
+  #  $ref: 'paths/Auth@register.yaml'
 
 components:
   securitySchemes:
     api_key:
       description: Código único del Cliente.
-      type: "apiKey"
-      name: "x-api-key"
-      in: "header"
+      type: apiKey
+      name: x-api-key
+      in: header
+

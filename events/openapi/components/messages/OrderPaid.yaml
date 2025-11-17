@@ -1,0 +1,17 @@
+name: OrderPaid
+title: Evento de pago exitoso
+contentType: application/json
+payload:
+  type: object
+  required:
+    - orderId
+    - paymentId
+    - timestamp
+  properties:
+    orderId:
+      type: string
+    paymentId:
+      type: string
+    timestamp:
+      type: string
+      format: date-time

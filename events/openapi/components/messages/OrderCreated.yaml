@@ -1,0 +1,24 @@
+name: OrderCreated
+title: Evento de creación de orden
+contentType: application/json
+payload:
+  type: object
+  required:
+    - orderId
+    - userId
+    - total
+    - timestamp
+  properties:
+    orderId:
+      type: string
+      description: Identificador único de la orden
+    userId:
+      type: string
+      description: Usuario asociado a la orden
+    total:
+      type: number
+      description: Monto total de la orden
+    timestamp:
+      type: string
+      format: date-time
+      description: Fecha y hora de creación

@@ -1,0 +1,26 @@
+asyncapi: '2.6.0'
+info:
+  title: Foodstore Order Events
+  version: 1.0.0
+  description: |
+    Especificación AsyncAPI de los eventos emitidos por el servicio de **órdenes**
+    dentro de Foodstore.  
+    Se comunican mediante **AWS EventBridge**.
+
+servers:
+  production:
+    url: arn:aws:events:us-east-1:123456789012:event-bus/foodstore
+    protocol: aws-eventbridge
+
+channels:
+  order.created:
+    $ref: './components/channels/order.created.yaml'
+  order.paid:
+    $ref: './components/channels/order.paid.yaml'
+
+components:
+  messages:
+    OrderCreated:
+      $ref: './components/messages/OrderCreated.yaml'
+    OrderPaid:
+      $ref: './components/messages/OrderPaid.yaml'

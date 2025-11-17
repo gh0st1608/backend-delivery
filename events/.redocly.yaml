@@ -1,0 +1,25 @@
+apiDefinitions:
+  main: "openapi/openapi.yaml"
+  async: "openapi/asyncapi.yaml"
+
+plugins:
+  - '@redocly/portal-plugin-async-api/plugin.js'
+
+asyncapi:
+  schemaId: FoodstoreAsyncAPI
+  hideInfo: false
+  hideOperations: false
+  hideServers: false
+  hideMessages: false
+  hideSchemas: false
+
+lint:
+  rules:
+    no-unused-schemas: warning
+
+referenceDocs:
+  htmlTemplate: ./docs/index.html
+  theme:
+    colors:
+      primary:
+        main: "#32329f"

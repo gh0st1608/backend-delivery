@@ -1,0 +1,17 @@
+{
+  "name": "api-foodstore",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "@asyncapi/cli": "^1.10.0",
+    "@redocly/cli": "^2.11.0",
+    "@redocly/portal-plugin-async-api": "^1.9.2",
+    "redoc-cli": "^0.13.21"
+  },
+  "scripts": {
+    "start": "redocly preview --port 8084",
+    "build": "openapi bundle -o dist/foodstore.yaml",
+    "build-html": "redoc-cli bundle ./dist/foodstore.yaml --output ./dist/foodstore.html -t ./docs/index.html",
+    "test": "openapi validate"
+  }
+}

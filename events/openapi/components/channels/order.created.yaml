@@ -1,0 +1,5 @@
+description: Evento cuando se crea una orden
+publish:
+  summary: Publica el evento cuando se crea una nueva orden
+  message:
+    $ref: '../messages/OrderCreated.yaml'
