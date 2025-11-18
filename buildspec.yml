@@ -28,8 +28,8 @@ phases:
     commands:
       - echo "🔍 Verificando existencia de la función Lambda..."
       - |
-        if ! aws lambda get-function --function-name $LAMBDA_NAME; then
-          echo "❌ La función Lambda '$LAMBDA_NAME' no existe. Debe crearse primero con Terraform."
+        if ! aws lambda get-function --function-name "$LAMBDA_NAME" >/dev/null 2>&1; then
+          echo "❌ La función Lambda '$LAMBDA_NAME' NO existe."
           exit 1
         fi
       - echo "Subiendo a S3..."
@@ -41,7 +41,7 @@ phases:
           exit 1
         fi
       - echo "Actualizando función Lambda..."
-      - aws lambda update-function-code --function-name $LAMBDA_NAME --s3-bucket $S3_BUCKET --s3-key $ZIP_KEY
+      - aws lambda update-function-code --function-name "$LAMBDA_NAME" --s3-bucket "$S3_BUCKET" --s3-key "$ZIP_KEY"
 
 artifacts:
   files:
