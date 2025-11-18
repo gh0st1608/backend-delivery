@@ -30,12 +30,4 @@ export async function setupAppHttp(app: INestApplication): Promise<void> {
     origin: ['*'],
     methods: ['*'],
   });
-
-  await app.init();
-}
-
-// Para Lambdas sin HTTP server (opcionalmente vacío si no necesitas nada)
-export async function setupAppContext(app: INestApplicationContext): Promise<void> {
-  // Por ahora no necesitas filtros, pipes ni CORS aquí
-  await app.init();
 }

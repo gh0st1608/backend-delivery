@@ -1,11 +1,11 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { SQSEmailConsumer } from '../consumer/sqs-email.consumer';
 
-@Controller()
+@Controller('notification')
 export class NotificationController {
   constructor(private readonly consumer: SQSEmailConsumer) {}
 
-  @Post('sqs-email')
+  @Post('send-email')
   async emulateSqs(@Body() body: any) {
     const sqsEvent = {
       Records: [
