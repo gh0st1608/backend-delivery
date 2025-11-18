@@ -8,7 +8,7 @@ import { SQSEmailConsumer } from './infrastructure/consumer/sqs-email.consumer';
 import { NotificationController } from './infrastructure/controller/sqs.controller';
 
 @Module({
-  imports : [
+  imports: [
     ConfigModule.forRoot({
       envFilePath: `${process.env.NODE_ENV || ''}.env`,
       isGlobal: true,

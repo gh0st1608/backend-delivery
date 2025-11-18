@@ -15,7 +15,7 @@ export class SesProvider {
             Body: { Text: { Data: body } },
           },
           Source: process.env.SES_SOURCE_EMAIL!,
-        })
+        }),
       );
       return true;
     } catch (err) {

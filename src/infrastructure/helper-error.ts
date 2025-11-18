@@ -3,7 +3,6 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { ApplicationException } from '../application/exceptions/application.exception';
 
-
 export class HelperError {
   static async response(exception: any) {
     const isHttp = exception instanceof HttpException;
@@ -50,12 +49,18 @@ export class HelperError {
 
   private static getTitle(status: number): string {
     switch (status) {
-      case 400: return 'Petición incorrecta';
-      case 401: return 'No autorizado';
-      case 403: return 'Acceso prohibido';
-      case 404: return 'No encontrado';
-      case 500: return 'Error interno del servidor';
-      default: return 'Error inesperado';
+      case 400:
+        return 'Petición incorrecta';
+      case 401:
+        return 'No autorizado';
+      case 403:
+        return 'Acceso prohibido';
+      case 404:
+        return 'No encontrado';
+      case 500:
+        return 'Error interno del servidor';
+      default:
+        return 'Error inesperado';
     }
   }
 }
