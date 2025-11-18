@@ -9,9 +9,9 @@ import { AuthServiceSymbol } from './domain/services/auth.service';
 import { AuthServiceImpl } from './infrastructure/services/auth.service.impl';
 import { ConfigModule } from '@nestjs/config';
 import { RegisterUseCase } from './application/register.application';
-import { EventUserPublisherSymbol } from './domain/services/event.service';
-import { EventUserPublisherImpl } from './infrastructure/events/sns.events.publisher';
+import { UserEventPublisherSymbol } from './domain/services/event.publisher';
 import { VerifyEmailUseCase } from './application/verify-email.application';
+import { EventBridgeUserEventPublisher } from './infrastructure/events/eventbridge-user-event.publisher';
 
 @Module({
   imports: [
@@ -34,8 +34,8 @@ import { VerifyEmailUseCase } from './application/verify-email.application';
       useClass: AuthServiceImpl,
     },
     {
-      provide: EventUserPublisherSymbol,
-      useClass: EventUserPublisherImpl,
+      provide: UserEventPublisherSymbol,
+      useClass: EventBridgeUserEventPublisher,
     },
   ],
 })

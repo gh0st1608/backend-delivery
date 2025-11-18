@@ -10,9 +10,9 @@ import { HttpStatusResponse } from '../domain/constants/http-code';
 import { DomainSuccessMessages } from '../domain/constants/messages';
 import { User } from '../domain/user.entity';
 import {
-  EventUserPublisher,
-  EventUserPublisherSymbol,
-} from '../domain/services/event.service';
+  UserEventPublisher,
+  UserEventPublisherSymbol,
+} from '../domain/services/event.publisher';
 
 @Injectable()
 export class RegisterUseCase {
@@ -23,8 +23,8 @@ export class RegisterUseCase {
     @Inject(AuthServiceSymbol)
     private readonly authService: AuthService,
 
-    @Inject(EventUserPublisherSymbol)
-    private readonly eventPublisher: EventUserPublisher,
+    @Inject(UserEventPublisherSymbol)
+    private readonly eventPublisher: UserEventPublisher,
   ) {}
 
   async execute(registerDto: RegisterDto): Promise<AuthResponseDto> {
@@ -48,8 +48,8 @@ export class RegisterUseCase {
       await this.userRepository.save(user);
 
       // ⚠️ Aquí publicamos el evento
-      await this.eventPublisher.publish({
-        name: 'UserRegistered',
+      await this.eventPublisher.publishUserRegistered({
+        name: 'UserRegister',
         payload: {
           userId: user.properties().id,
           email: email,
