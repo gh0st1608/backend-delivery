@@ -1,0 +1,50 @@
+version: 0.2
+
+env:
+  variables:
+    S3_BUCKET: foodstore-microservices-lambdas-functions
+    ZIP_KEY: auth/lambda.zip
+    LAMBDA_NAME: foodstore-auth-service
+
+phases:
+  install:
+    commands:
+      - echo "Cambiando al directorio del microservicio..."
+      - cd backend/auth
+      - echo "Instalando dependencias para compilación..."
+      - npm ci --no-audit
+
+  build:
+    commands:
+      - echo "Compilando Lambda..."
+      - npm run build:lambda
+      - echo "Copiando archivos necesarios al directorio de build..."
+      - cp package.json package-lock.json .build-lambda/
+      - cd .build-lambda
+      - npm ci --omit=dev --no-audit
+      - echo "Empaquetando lambda.zip..."
+      - zip -r lambda.zip .
+      - cd ..
+
+  post_build:
+    commands:
+      - echo "🔍 Verificando existencia de la función Lambda..."
+      - |
+        if ! aws lambda get-function --function-name $LAMBDA_NAME; then
+          echo "❌ La función Lambda '$LAMBDA_NAME' no existe. Debe crearse primero con Terraform."
+          exit 1
+        fi
+      - echo "Subiendo a S3..."
+      - aws s3 cp .build-lambda/lambda.zip s3://$S3_BUCKET/$ZIP_KEY
+      - echo "🔍 Verificando existencia del archivo en S3..."
+      - |
+        if ! aws s3api head-object --bucket "$S3_BUCKET" --key "$ZIP_KEY" >/dev/null 2>&1; then
+          echo "❌ El archivo '$ZIP_KEY' no se encontró en el bucket '$S3_BUCKET'."
+          exit 1
+        fi
+      - echo "Actualizando función Lambda..."
+      - aws lambda update-function-code --function-name $LAMBDA_NAME --s3-bucket $S3_BUCKET --s3-key $ZIP_KEY
+
+artifacts:
+  files:
+    - .build-lambda/lambda.zip

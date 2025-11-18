@@ -1,0 +1,33 @@
+{
+  "name": "mse-notification-foodstore",
+  "version": "1.0.0",
+  "description": "Notification microservice for Foodstore (Hexagonal Architecture)",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "nest build -p tsconfig.build.json",
+    "build:lambda": "nest build -p tsconfig.lambda.json",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:prod": "node dist/main.js"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/config": "^3.2.3",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.1",
+    "@aws-sdk/client-sqs": "^3.600.0",
+    "@aws-sdk/client-ses": "^3.600.0",
+    "aws-lambda": "^1.0.7"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.0.0",
+    "@nestjs/schematics": "^10.0.0",
+    "@nestjs/testing": "^10.0.0",
+
+    "typescript": "^5.1.3",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0"
+  }
+}
