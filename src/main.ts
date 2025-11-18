@@ -7,8 +7,7 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log'],
   });
   await setupAppHttp(app);
-  await app.listen(3000);
-  console.log('Notification service running on http://localhost:3000');
+  await app.listen(process.env.PORT);
 }
 
 bootstrap();
