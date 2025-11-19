@@ -3,7 +3,7 @@ import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
 @Injectable()
 export class SesProvider {
-  private client = new SESClient({ region: process.env.AWS_REGION });
+  private client = new SESClient({ region: process.env.REGION });
 
   async send(to: string, subject: string, body: string): Promise<boolean> {
     try {
