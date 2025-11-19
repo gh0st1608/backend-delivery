@@ -34,7 +34,7 @@ phases:
         fi
       - echo "Subiendo a S3..."
       - aws s3 cp .build-lambda/lambda.zip s3://$S3_BUCKET/$ZIP_KEY
-      - echo "🔍 Verificando existencia del archivo en S3..."
+      - echo "🔍 Verificando existencia del archivo en S3.."
       - |
         if ! aws s3api head-object --bucket "$S3_BUCKET" --key "$ZIP_KEY" >/dev/null 2>&1; then
           echo "❌ El archivo '$ZIP_KEY' no se encontró en el bucket '$S3_BUCKET'."
