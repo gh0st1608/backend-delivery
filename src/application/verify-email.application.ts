@@ -35,8 +35,9 @@ export class VerifyEmailUseCase {
       await this.eventPublisher.publishEmailVerification({
         name: 'EmailVerify',
         payload: {
-          userId: user.properties().id,
           email: email,
+          subject: 'Bienvenido a la plataforma',
+          message: 'Tu cuenta ha sido creada correctamente'
         },
       });
 
