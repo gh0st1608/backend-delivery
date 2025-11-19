@@ -26,7 +26,7 @@ phases:
 
   post_build:
     commands:
-      - echo "🔍 Verificando existencia de la función Lambda..."
+      - echo "🔍 Verificando existencia de la función Lambda.."
       - |
         if ! aws lambda get-function --function-name "$LAMBDA_NAME" >/dev/null 2>&1; then
           echo "❌ La función Lambda '$LAMBDA_NAME' NO existe."
