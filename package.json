@@ -2,7 +2,7 @@
   "name": "mse-notification-foodstore",
   "version": "1.0.0",
   "description": "Notification microservice for Foodstore (Hexagonal Architecture)",
-  "main": "dist/main.js",
+  "main": "index.js",
   "scripts": {
     "build": "nest build -p tsconfig.build.json",
     "build:lambda": "nest build -p tsconfig.lambda.json",
