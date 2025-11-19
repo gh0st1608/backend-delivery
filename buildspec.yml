@@ -9,7 +9,7 @@ env:
 phases:
   install:
     commands:
-      - echo "Instalando dependencias para compilación..."
+      - echo "Instalando dependencias para compilación.."
       - npm ci --no-audit
 
   build:
