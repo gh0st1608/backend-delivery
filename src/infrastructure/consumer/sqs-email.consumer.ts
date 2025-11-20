@@ -1,14 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { SendEmailUseCase } from '../../application/send-email.application';
-import {
-  SQSEvent,
-  SQSRecord,
-} from 'aws-lambda';
+import { SQSEvent } from 'aws-lambda';
 
 interface EmailVerificationPayload {
   email: string;
   subject: string;
   message: string;
+}
+
+interface EventBridgeDetail {
+  name: string;
+  payload: EmailVerificationPayload;
+}
+
+interface EventBridgeMessageBody {
+  version: string;
+  id: string;
+  'detail-type': string;
+  source: string;
+  account: string;
+  time: string;
+  region: string;
+  resources: any[];
+  detail: EventBridgeDetail;
 }
 
 @Injectable()
@@ -18,23 +32,12 @@ export class SQSEmailConsumer {
   async handle(event: SQSEvent): Promise<void> {
     try {
       for (const record of event.Records) {
-        const parsed: unknown = JSON.parse(record.body);
-        console.log('parsed', parsed)
+        const eventBody: EventBridgeMessageBody = JSON.parse(record.body);
 
-        /**
-         * EventBridge → SQS estructura:
-         * {
-         *    "detail": {
-         *        "name": "...",
-         *        "payload": { email, subject, message }
-         *    }
-         * }
-         */
-        const payload: EmailVerificationPayload =
-          (parsed as any)?.detail?.payload;
+        const payload = eventBody.detail.payload;
 
         if (!payload) {
-          console.error('❌ Payload inválido en SQS record:', parsed);
+          console.error('❌ Payload inválido en SQS record:', eventBody);
           continue;
         }
 
