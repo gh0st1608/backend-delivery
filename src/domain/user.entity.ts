@@ -5,7 +5,6 @@ export interface UserRequired {
   readonly email: string;
   readonly password: string;
   readonly roles: string;
-  //readonly roles: string[] | unknown[];
 }
 
 export interface UserOptional {
