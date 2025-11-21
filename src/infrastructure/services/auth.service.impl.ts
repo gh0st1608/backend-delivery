@@ -9,6 +9,11 @@ import { User } from '../../domain/user.entity';
 @Injectable()
 export class AuthServiceImpl implements AuthService {
   private readonly saltRounds = 10;
+
+  generateVerificationCode(): string {
+    return Math.floor(1000 + Math.random() * 9000).toString();
+  }
+
   async comparePasswords(raw: string, hashed: string): Promise<boolean> {
     return bcrypt.compare(raw, hashed);
   }

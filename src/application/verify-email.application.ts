@@ -38,7 +38,7 @@ export class VerifyEmailUseCase {
     }
 
     // 1) Generar código
-    const code = this.authService.generateCodeEmail();
+    const code = this.authService.generateVerificationCode();
 
     // 2) Guardar código + TTL en DynamoDB
     const ttl = Math.floor(Date.now() / 1000) + 4 * 60; // 4 minutos
