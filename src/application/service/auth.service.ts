@@ -1,8 +1,7 @@
-import { v4 as uuidv4 } from "uuid";
-import * as jwt from "jwt-simple";
-import moment from "moment";
+import { v4 as uuidv4 } from 'uuid';
+import * as jwt from 'jwt-simple';
+import moment from 'moment';
 import bcrypt from 'bcrypt';
-
 
 export default class AuthAppService {
   static generateRefreshToken(): string {
@@ -10,16 +9,16 @@ export default class AuthAppService {
   }
 
   static generateCodeEmail(): string {
-  return Math.floor(1000 + Math.random() * 9000).toString();
-}
+    return Math.floor(1000 + Math.random() * 9000).toString();
+  }
 
-  static generateAccessToken(id: string, name: string, role : string): string {
+  static generateAccessToken(id: string, name: string, role: string): string {
     const payload = {
       id,
       name,
       role,
       iat: moment().unix(),
-      exp: moment().add(process.env.TOKEN_TIMEOUT, "minutes").unix(),
+      exp: moment().add(process.env.TOKEN_TIMEOUT, 'minutes').unix(),
     };
 
     return jwt.encode(payload, process.env.TOKEN_SECRET_WORD);
@@ -31,7 +30,7 @@ export default class AuthAppService {
 
   static async isMatchPassword(
     password: string,
-    hash: string
+    hash: string,
   ): Promise<boolean> {
     return await bcrypt.compare(password, hash);
   }
@@ -39,16 +38,13 @@ export default class AuthAppService {
   static validateAccessToken(accessToken: string) {
     return new Promise((resolve, reject) => {
       try {
-        const payload = jwt.decode(
-          accessToken,
-          process.env.TOKEN_SECRET_WORD
-        );
+        const payload = jwt.decode(accessToken, process.env.TOKEN_SECRET_WORD);
         resolve(payload);
       } catch (error: any) {
-        if (error.message === "Token expired") {
-          reject({ status: 409, message: "The access token has expired" });
+        if (error.message === 'Token expired') {
+          reject({ status: 409, message: 'The access token has expired' });
         } else {
-          reject({ status: 401, message: "The access token is invalid" });
+          reject({ status: 401, message: 'The access token is invalid' });
         }
       }
     });

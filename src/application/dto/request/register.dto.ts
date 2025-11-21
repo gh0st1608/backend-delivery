@@ -13,7 +13,9 @@ import { Type, Transform } from 'class-transformer';
  */
 export class RegisterUserPayloadDto {
   @IsEmail({}, { message: 'El email no es válido.' })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
   email: string;
 
   @IsString()
@@ -24,7 +26,9 @@ export class RegisterUserPayloadDto {
 
   @IsString()
   @IsNotEmpty({ message: 'El nombre completo es requerido.' })
-  @MaxLength(150, { message: 'El nombre completo no debe exceder 150 caracteres.' })
+  @MaxLength(150, {
+    message: 'El nombre completo no debe exceder 150 caracteres.',
+  })
   fullname: string;
 }
 

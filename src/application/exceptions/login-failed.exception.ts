@@ -5,6 +5,6 @@ import { ApplicationException } from './application.exception';
 
 export class LoginFailedException extends ApplicationException {
   constructor() {
-    super(1001,DomainErrorMessages.INVALID_CREDENTIALS);
+    super(1001, DomainErrorMessages.INVALID_CREDENTIALS);
   }
 }

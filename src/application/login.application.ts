@@ -22,7 +22,7 @@ export class LoginUseCase {
   ) {}
 
   async execute(authLogin: LoginDto): Promise<AuthResponseDto> {
-    const { email, password } = authLogin.Auth
+    const { email, password } = authLogin.Auth;
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
       throw new LoginFailedException();
@@ -42,10 +42,11 @@ export class LoginUseCase {
 
     return {
       Auth: {
-        accessToken, refreshToken
+        accessToken,
+        refreshToken,
       },
       statusCode: HttpStatusResponse.OK,
-      message: DomainSuccessMessages.LOGIN_SUCESS
+      message: DomainSuccessMessages.LOGIN_SUCESS,
     };
   }
 }

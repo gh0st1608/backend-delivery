@@ -1,10 +1,8 @@
 import { User } from '../user.entity';
 
 export interface UserRepository {
-  findByEmail(email : string): Promise<User>;
+  findByEmail(email: string): Promise<User>;
   save(user: User): Promise<void>;
 }
 
-export const UserRepositorySymbol = Symbol(
-  'UserRepository',
-);
+export const UserRepositorySymbol = Symbol('UserRepository');

@@ -14,11 +14,11 @@ export class LoginPayloadDto {
   @IsIn(['password'], { message: 'authType debe ser uno de: password' })
   authType: string;
 
-  @ValidateIf(o => o.authType === 'password')
+  @ValidateIf((o) => o.authType === 'password')
   @IsEmail({}, { message: 'El email no es válido' })
   email: string;
 
-  @ValidateIf(o => o.authType === 'password')
+  @ValidateIf((o) => o.authType === 'password')
   @IsString()
   @IsNotEmpty({ message: 'La contraseña no puede estar vacía' })
   password: string;
@@ -33,4 +33,3 @@ export class LoginDto {
   @Type(() => LoginPayloadDto)
   Auth: LoginPayloadDto;
 }
-

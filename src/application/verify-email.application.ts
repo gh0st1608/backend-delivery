@@ -4,7 +4,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { UserRepository } from '../domain/repository/user.repository';
 import { VerifiedEmailResponseDto } from './dto/response/response-custom.dto';
 import { HttpStatusResponse } from '../domain/constants/http-code';
-import { DomainSuccessMessages } from '../domain/constants/messages';
 import { EmailInvalidException } from './exceptions/email-invalid.exception';
 import { UserRepositorySymbol } from '../domain/repository/user.repository';
 import { VerifyEmailDto } from './dto/request/verify-email.dto';
@@ -16,7 +15,6 @@ import {
   AuthService,
   AuthServiceSymbol,
 } from '../domain/services/auth.service';
-import { User } from '../domain/user.entity';
 
 @Injectable()
 export class VerifyEmailUseCase {
@@ -45,7 +43,10 @@ export class VerifyEmailUseCase {
     // 2) Guardar código + TTL en DynamoDB
     const ttl = Math.floor(Date.now() / 1000) + 4 * 60; // 4 minutos
 
-    const userUpdate = user.update({verificationCode: code, verificationCodeExpiresAt : ttl})
+    const userUpdate = user.update({
+      verificationCode: code,
+      verificationCodeExpiresAt: ttl,
+    });
 
     await this.userRepository.save(userUpdate);
 

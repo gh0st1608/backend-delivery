@@ -25,15 +25,15 @@ export class AuthServiceImpl implements AuthService {
         /* roles: user.getRoles(), */
       },
       process.env.JWT_SECRET,
-      { expiresIn: '15m' }
+      { expiresIn: '15m' },
     );
   }
 
   generateRefreshToken(user: User): string {
     return jwt.sign(
-      { sub: user.properties().id, },
+      { sub: user.properties().id },
       process.env.JWT_REFRESH_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '7d' },
     );
   }
 }

@@ -1,7 +1,4 @@
-import {
-  IsEmail,
-  ValidateNested,
-} from 'class-validator';
+import { IsEmail, ValidateNested } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
 /**
@@ -9,7 +6,9 @@ import { Type, Transform } from 'class-transformer';
  */
 export class VerifyEmailPayloadDto {
   @IsEmail({}, { message: 'El email no es válido.' })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
   email: string;
 }
 

@@ -1,10 +1,8 @@
-import { DomainEvent } from "../interfaces/event.interface";
+import { DomainEvent } from '../interfaces/event.interface';
 
-export interface UserEventPublisher  {
+export interface UserEventPublisher {
   publishEmailVerification(payload: DomainEvent): Promise<void>;
   publishUserRegistered(payload: DomainEvent): Promise<void>;
 }
 
-export const UserEventPublisherSymbol = Symbol(
-  'UserEventPublisher',
-);
+export const UserEventPublisherSymbol = Symbol('UserEventPublisher');

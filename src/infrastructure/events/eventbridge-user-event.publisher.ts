@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
+import {
+  EventBridgeClient,
+  PutEventsCommand,
+} from '@aws-sdk/client-eventbridge';
 import { UserEventPublisher } from '../../domain/services/event.publisher';
 import { DomainEvent } from '../../domain/interfaces/event.interface';
 
@@ -9,7 +12,10 @@ export class EventBridgeUserEventPublisher implements UserEventPublisher {
     region: process.env.AWS_REGION,
   });
 
-  private async publish(detailType: string, payload: DomainEvent): Promise<void> {
+  private async publish(
+    detailType: string,
+    payload: DomainEvent,
+  ): Promise<void> {
     const command = new PutEventsCommand({
       Entries: [
         {
