@@ -9,6 +9,10 @@ export default class AuthAppService {
     return uuidv4();
   }
 
+  static generateCodeEmail(): string {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
   static generateAccessToken(id: string, name: string, role : string): string {
     const payload = {
       id,

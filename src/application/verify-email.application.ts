@@ -12,6 +12,11 @@ import {
   UserEventPublisher,
   UserEventPublisherSymbol,
 } from '../domain/services/event.publisher';
+import {
+  AuthService,
+  AuthServiceSymbol,
+} from '../domain/services/auth.service';
+import { User } from '../domain/user.entity';
 
 @Injectable()
 export class VerifyEmailUseCase {
@@ -20,37 +25,44 @@ export class VerifyEmailUseCase {
     private readonly userRepository: UserRepository,
     @Inject(UserEventPublisherSymbol)
     private readonly eventPublisher: UserEventPublisher,
+    @Inject(AuthServiceSymbol)
+    private readonly authService: AuthService,
   ) {}
 
   async execute(
     verifyEmail: VerifyEmailDto,
   ): Promise<VerifiedEmailResponseDto> {
-    try {
-      const { email } = verifyEmail.User;
-      const user = await this.userRepository.findByEmail(email);
-      if (!user) {
-        throw new EmailInvalidException();
-      }
+    const { email } = verifyEmail.User;
 
-      await this.eventPublisher.publishEmailVerification({
-        name: 'EmailVerify',
-        payload: {
-          email: email,
-          subject: 'Bienvenido a la plataforma',
-          message: 'Tu cuenta ha sido creada correctamente'
-        },
-      });
-
-      return {
-        User: {
-          verifyEmail: true,
-        },
-        statusCode: HttpStatusResponse.OK,
-        message: DomainSuccessMessages.EMAIL_VERIFIED,
-      };
-    } catch (error) {
-      console.error('❌ Error en VerifyEmailCase.execute():', error);
-      throw error;
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new EmailInvalidException();
     }
+
+    // 1) Generar código
+    const code = this.authService.generateCodeEmail();
+
+    // 2) Guardar código + TTL en DynamoDB
+    const ttl = Math.floor(Date.now() / 1000) + 4 * 60; // 4 minutos
+
+    const userUpdate = user.update({verificationCode: code, verificationCodeExpiresAt : ttl})
+
+    await this.userRepository.save(userUpdate);
+
+    // 3) Publicar el evento a EventBridge
+    await this.eventPublisher.publishEmailVerification({
+      name: 'EmailVerify',
+      payload: {
+        email: email,
+        subject: 'Código de verificación',
+        message: `Su código de validación es: ${code}`,
+      },
+    });
+
+    return {
+      User: { verifyEmail: false }, // todavía no está verificado
+      statusCode: HttpStatusResponse.OK,
+      message: 'Código enviado correctamente',
+    };
   }
 }

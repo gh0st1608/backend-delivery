@@ -51,16 +51,23 @@ export class UserRepositoryImpl implements UserRepository {
 
   async save(user: User): Promise<void> {
     const props = user.properties();
-    console.log('props',props)
 
     const command = new PutCommand({
       TableName: this.tableName,
       Item: {
-        userId: props.id, // ← debe coincidir con el hash_key de la tabla
+        userId: props.id,
         email: props.email,
         name: props.name,
+        lastname: props.lastname,
         password: props.password,
         roles: props.roles,
+        active: props.active,
+        photo: props.photo,
+        refreshToken: props.refreshToken,
+        verificationCode: props.verificationCode,
+        verificationCodeExpiresAt: props.verificationCodeExpiresAt,
+        createdAt: props.createdAt?.toISOString?.() ?? null,
+        updatedAt: new Date().toISOString(),
       },
     });
 

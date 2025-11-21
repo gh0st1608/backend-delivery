@@ -11,6 +11,8 @@ export interface UserRequired {
 export interface UserOptional {
   readonly id: string;
   readonly lastname: string;
+  readonly verificationCode: string;
+  readonly verificationCodeExpiresAt: number;
   readonly photo: string;
   readonly active: boolean;
   readonly refreshToken: string;
@@ -22,15 +24,27 @@ export interface UserOptional {
 export type UserProperties = UserRequired & Partial<UserOptional>;
 
 export type UserPropertiesUpdate = Partial<
-  Omit<UserRequired, ''> & Pick<UserOptional, 'photo'>
+  Omit<UserRequired, ''> &
+    Pick<
+      UserOptional,
+      | 'lastname'
+      | 'verificationCode'
+      | 'verificationCodeExpiresAt'
+      | 'photo'
+      | 'active'
+      | 'refreshToken'
+      | 'updatedAt'
+    >
 >;
 
 export class User {
-  private id : string;
+  private id: string;
   private name: string;
   private lastname: string;
   private readonly email: string;
   private password: string;
+  private verificationCode: string;
+  private verificationCodeExpiresAt: number;
   private photo: string;
   private roles: string;
   private active: boolean;
@@ -51,6 +65,8 @@ export class User {
       lastname: this.lastname,
       email: this.email,
       password: this.password,
+      verificationCode: this.verificationCode,
+      verificationCodeExpiresAt: this.verificationCodeExpiresAt,
       photo: this.photo,
       roles: this.roles,
       active: this.active,

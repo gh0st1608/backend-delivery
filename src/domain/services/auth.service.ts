@@ -3,6 +3,7 @@
 import { User } from '../../domain/user.entity';
 
 export interface AuthService {
+  generateCodeEmail(): string;
   hashPassword(password : string) : Promise<string>;
   comparePasswords(raw: string, hashed: string): Promise<boolean>;
   generateAccessToken(user: User): string;
