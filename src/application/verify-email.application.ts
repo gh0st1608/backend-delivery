@@ -43,12 +43,12 @@ export class VerifyEmailUseCase {
 
       // 2) Guardar código + TTL en DynamoDB
       const ttl = Math.floor(Date.now() / 1000) + 4 * 60; // 4 minutos
-
+      
       const userUpdate = user.update({
         verificationCode: code,
         verificationCodeExpiresAt: ttl,
       });
-
+      console.log('userupdate',userUpdate)
       await this.userRepository.save(userUpdate);
 
       // 3) Publicar el evento a EventBridge
