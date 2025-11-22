@@ -30,40 +30,44 @@ export class VerifyEmailUseCase {
   async execute(
     verifyEmail: VerifyEmailDto,
   ): Promise<VerifiedEmailResponseDto> {
-    const { email } = verifyEmail.User;
+    try {
+      const { email } = verifyEmail.User;
 
-    const user = await this.userRepository.findByEmail(email);
-    if (!user) {
-      throw new EmailInvalidException();
+      const user = await this.userRepository.findByEmail(email);
+      if (!user) {
+        throw new EmailInvalidException();
+      }
+
+      // 1) Generar código
+      const code = this.authService.generateVerificationCode();
+
+      // 2) Guardar código + TTL en DynamoDB
+      const ttl = Math.floor(Date.now() / 1000) + 4 * 60; // 4 minutos
+
+      const userUpdate = user.update({
+        verificationCode: code,
+        verificationCodeExpiresAt: ttl,
+      });
+
+      await this.userRepository.save(userUpdate);
+
+      // 3) Publicar el evento a EventBridge
+      await this.eventPublisher.publishEmailVerification({
+        name: 'EmailVerify',
+        payload: {
+          email: email,
+          subject: 'Código de verificación',
+          message: `Su código de validación es: ${code}`,
+        },
+      });
+
+      return {
+        User: { verifyEmail: false }, // todavía no está verificado
+        statusCode: HttpStatusResponse.OK,
+        message: 'Código enviado correctamente',
+      };
+    } catch (error) {
+      console.log('error', error);
     }
-
-    // 1) Generar código
-    const code = this.authService.generateVerificationCode();
-
-    // 2) Guardar código + TTL en DynamoDB
-    const ttl = Math.floor(Date.now() / 1000) + 4 * 60; // 4 minutos
-
-    const userUpdate = user.update({
-      verificationCode: code,
-      verificationCodeExpiresAt: ttl,
-    });
-
-    await this.userRepository.save(userUpdate);
-
-    // 3) Publicar el evento a EventBridge
-    await this.eventPublisher.publishEmailVerification({
-      name: 'EmailVerify',
-      payload: {
-        email: email,
-        subject: 'Código de verificación',
-        message: `Su código de validación es: ${code}`,
-      },
-    });
-
-    return {
-      User: { verifyEmail: false }, // todavía no está verificado
-      statusCode: HttpStatusResponse.OK,
-      message: 'Código enviado correctamente',
-    };
   }
 }
