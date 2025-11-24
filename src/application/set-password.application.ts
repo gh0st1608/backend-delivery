@@ -23,14 +23,11 @@ export class SetPasswordUseCase {
     try {
       const { email, password } = setPasswordDto.User;
 
-      const existingUser = await this.userRepository.findByEmail(email);
-      if (existingUser) {
-        throw new UserAlreadyExistsException();
-      }
+      const userFound = await this.userRepository.findByEmail(email);
 
       const hashedNewPassword = await this.authService.hashPassword(password);
 
-      const userUpdated = existingUser.update({
+      const userUpdated = userFound.update({
         password: hashedNewPassword
       });
 
