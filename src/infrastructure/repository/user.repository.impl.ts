@@ -46,6 +46,8 @@ export class UserRepositoryImpl implements UserRepository {
       name: userData.name,
       password: userData.password,
       roles: userData.roles,
+      verificationCode: userData.verificationCode,
+      verificationCodeExpiresAt: userData.verificationCodeExpiresAt,
     });
   }
 
