@@ -7,6 +7,8 @@ import { VerifyEmailUseCase } from '../application/verify-email.application';
 import { VerifyEmailDto } from '../application/dto/request/verify-email.dto';
 import { VerifyCodeDto } from '../application/dto/request/verify-code.dto';
 import { VerifyCodeUseCase } from '../application/verify-code.application';
+import { SetPasswordDto } from '../application/dto/request/set-password.dto';
+import { SetPasswordUseCase } from '../application/set-password.application';
 
 @Controller('auth')
 export class AuthController {
@@ -15,6 +17,7 @@ export class AuthController {
     private readonly registerUseCase: RegisterUseCase,
     private readonly verifyEmailUseCase: VerifyEmailUseCase,
     private readonly verifyCodeUseCase: VerifyCodeUseCase,
+    private readonly setPasswordUseCase: SetPasswordUseCase,
   ) {}
 
   @Post('login')
@@ -35,5 +38,10 @@ export class AuthController {
   @Post('verify-code')
   async verifyCode(@Body() body: VerifyCodeDto) {
     return this.verifyCodeUseCase.execute(body);
+  }
+
+  @Post('set-password')
+  async setPassword(@Body() body: SetPasswordDto) {
+    return this.setPasswordUseCase.execute(body);
   }
 }

@@ -15,4 +15,5 @@ export enum DomainSuccessMessages {
   LOGIN_FAILED = 'Inicio de sesión fallido',
   REGISTER_SUCCESS = 'Usuario registrado correctamente',
   EMAIL_VERIFIED = 'Email Validado correctamente',
+  SET_PASSWORD_SUCCESS = 'Contraseña actualizado correctamente'
 }

@@ -26,7 +26,7 @@ export class VerifyCodeUseCase {
     }
 
     const props = user.properties();
-    console.log('props', props);
+
     // 2) Validar existencia de código
     if (!props.verificationCode || !props.verificationCodeExpiresAt) {
       throw new VerificationCodeNotExistException();
