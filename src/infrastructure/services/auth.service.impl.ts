@@ -25,7 +25,7 @@ export class AuthServiceImpl implements AuthService {
   generateAccessToken(user: User): string {
     return jwt.sign(
       {
-        sub: user.properties().id,
+        sub: user.properties().userId,
         name: user.properties().name,
         /* roles: user.getRoles(), */
       },
@@ -36,7 +36,7 @@ export class AuthServiceImpl implements AuthService {
 
   generateRefreshToken(user: User): string {
     return jwt.sign(
-      { sub: user.properties().id },
+      { sub: user.properties().userId },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: '7d' },
     );

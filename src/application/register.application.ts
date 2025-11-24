@@ -51,7 +51,7 @@ export class RegisterUseCase {
       await this.eventPublisher.publishUserRegistered({
         name: 'UserRegister',
         payload: {
-          userId: user.properties().id,
+          userId: user.properties().userId,
           email: email,
         },
       });

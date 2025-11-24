@@ -41,7 +41,7 @@ export class UserRepositoryImpl implements UserRepository {
     if (!userData) return null;
 
     return new User({
-      id: userData.id,
+      userId: userData.id,
       email: userData.email,
       name: userData.name,
       password: userData.password,
@@ -55,7 +55,7 @@ export class UserRepositoryImpl implements UserRepository {
     const command = new PutCommand({
       TableName: this.tableName,
       Item: {
-        userId: props.id,
+        userId: props.userId,
         email: props.email,
         name: props.name,
         lastname: props.lastname,

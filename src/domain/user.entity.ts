@@ -8,7 +8,7 @@ export interface UserRequired {
 }
 
 export interface UserOptional {
-  readonly id: string;
+  readonly userId: string;
   readonly lastname: string;
   readonly verificationCode: string;
   readonly verificationCodeExpiresAt: number;
@@ -37,7 +37,7 @@ export type UserPropertiesUpdate = Partial<
 >;
 
 export class User {
-  private id: string;
+  private userId: string;
   private name: string;
   private lastname: string;
   private readonly email: string;
@@ -59,7 +59,7 @@ export class User {
 
   properties(): UserProperties {
     return {
-      id: this.id,
+      userId: this.userId,
       name: this.name,
       lastname: this.lastname,
       email: this.email,
@@ -87,7 +87,7 @@ export class User {
     const now = new Date();
 
     return new User({
-      id: uuidv4(),
+      userId: uuidv4(),
       name: data.name,
       email: data.email,
       password: data.password,
