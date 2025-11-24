@@ -12,6 +12,7 @@ import { RegisterUseCase } from './application/register.application';
 import { UserEventPublisherSymbol } from './domain/services/event.publisher';
 import { VerifyEmailUseCase } from './application/verify-email.application';
 import { EventBridgeUserEventPublisher } from './infrastructure/events/eventbridge-user-event.publisher';
+import { VerifyCodeUseCase } from './application/verify-code.application';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { EventBridgeUserEventPublisher } from './infrastructure/events/eventbrid
     LoginUseCase,
     RegisterUseCase,
     VerifyEmailUseCase,
+    VerifyCodeUseCase,
     {
       provide: UserRepositorySymbol,
       useClass: UserRepositoryImpl,
