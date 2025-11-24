@@ -1,11 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UserRepository } from '../domain/repository/user.repository';
 import { UserRepositorySymbol } from '../domain/repository/user.repository';
-import { AuthService, AuthServiceSymbol } from '../domain/services/auth.service';
 import { HttpStatusResponse } from '../domain/constants/http-code';
 import { EmailInvalidException } from './exceptions/email-invalid.exception';
 import { VerifyCodeDto } from './dto/request/verify-code.dto';
 import { VerifiedEmailResponseDto } from './dto/response/response-custom.dto';
+import { VerificationCodeNotExistException } from './exceptions/verification-code-not-exist.exception copy';
+import { VerificationCodeExpiredException } from './exceptions/verification-code-expired.exception';
+import { VerificationCodeInvalidException } from './exceptions/verification-code-invalid.exception copy';
 
 @Injectable()
 export class VerifyCodeUseCase {
@@ -24,33 +26,21 @@ export class VerifyCodeUseCase {
     }
 
     const props = user.properties();
-
+    console.log('props', props);
     // 2) Validar existencia de código
     if (!props.verificationCode || !props.verificationCodeExpiresAt) {
-      return {
-        User: { verifyEmail: false },
-        statusCode: HttpStatusResponse.BAD_REQUEST,
-        message: 'No existe ningún código activo para este usuario',
-      };
+      throw new VerificationCodeNotExistException();
     }
 
     // 3) Validar expiración
     const now = Math.floor(Date.now() / 1000);
     if (props.verificationCodeExpiresAt < now) {
-      return {
-        User: { verifyEmail: false },
-        statusCode: HttpStatusResponse.BAD_REQUEST,
-        message: 'El código ha expirado',
-      };
+      throw new VerificationCodeExpiredException();
     }
 
     // 4) Validar código ingresado
     if (props.verificationCode !== code) {
-      return {
-        User: { verifyEmail: false },
-        statusCode: HttpStatusResponse.BAD_REQUEST,
-        message: 'El código ingresado es incorrecto',
-      };
+      throw new VerificationCodeInvalidException();
     }
 
     // 5) Limpiar valores (ya verificado)
