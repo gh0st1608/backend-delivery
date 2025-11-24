@@ -41,7 +41,7 @@ export class UserRepositoryImpl implements UserRepository {
     if (!userData) return null;
 
     return new User({
-      userId: userData.id,
+      userId: userData.userId,
       email: userData.email,
       name: userData.name,
       password: userData.password,

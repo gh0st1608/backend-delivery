@@ -43,7 +43,7 @@ export class VerifyEmailUseCase {
 
       // 2) Guardar código + TTL en DynamoDB
       const ttl = Math.floor(Date.now() / 1000) + 4 * 60; // 4 minutos
-      
+      console.log('user',user)
       const userUpdate = user.update({
         verificationCode: code,
         verificationCodeExpiresAt: ttl,
