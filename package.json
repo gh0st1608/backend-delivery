@@ -1,7 +1,7 @@
 {
   "name": "mse-auth-foodstore",
   "version": "1.0.0",
-  "description": "",
+  "description": "Shop microservice for ecommerce (event-driven hexagonal architecture)",
   "main": "index.js",
   "scripts": {
     "build": "nest build -p ./tsconfig.build.json",

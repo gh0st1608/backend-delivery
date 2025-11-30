@@ -5,9 +5,9 @@ import { HttpStatusResponse } from '../domain/constants/http-code';
 import { EmailInvalidException } from './exceptions/email-invalid.exception';
 import { VerifyCodeDto } from './dto/request/verify-code.dto';
 import { VerifiedEmailResponseDto } from './dto/response/response-custom.dto';
-import { VerificationCodeNotExistException } from './exceptions/verification-code-not-exist.exception copy';
+import { VerificationCodeNotExistException } from './exceptions/verification-code-not-exist.exception';
 import { VerificationCodeExpiredException } from './exceptions/verification-code-expired.exception';
-import { VerificationCodeInvalidException } from './exceptions/verification-code-invalid.exception copy';
+import { VerificationCodeInvalidException } from './exceptions/verification-code-invalid.exception';
 
 @Injectable()
 export class VerifyCodeUseCase {

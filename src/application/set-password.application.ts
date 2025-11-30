@@ -41,7 +41,6 @@ export class SetPasswordUseCase {
         message: DomainSuccessMessages.SET_PASSWORD_SUCCESS,
       };
     } catch (error) {
-      console.error('❌ Error en RegisterUseCase.execute():', error);
       throw error;
     }
   }
