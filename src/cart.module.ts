@@ -32,7 +32,7 @@ import { CartEventPublisherSymbol } from './domain/services/cart-event.publisher
     {
       provide: CartEventPublisherSymbol,
       useClass: EventBridgeCartEventPublisher,
-    }
+    },
   ],
 })
 export class CartModule {}

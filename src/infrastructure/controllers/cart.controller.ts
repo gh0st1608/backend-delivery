@@ -3,10 +3,7 @@ import { GetCartUseCase } from '../../application/use-cases/get-cart-by-user.use
 import { RemoveItemUseCase } from '../../application/use-cases/remove-item.usecase';
 import { ClearCartUseCase } from '../../application/use-cases/clear-cart.usecase';
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
-import {
-  ItemCartDto,
-  ItemCartPayloadDto,
-} from '../../application/dto/request/create-item-cart.dto';
+import { ItemCartDto } from '../../application/dto/request/create-item-cart.dto';
 
 @Controller('cart')
 export class CartController {
@@ -36,9 +33,7 @@ export class CartController {
   }
 
   @Delete('/:userId')
-  async clearItemByUser(
-    @Param('userId') userId: string
-  ) {
+  async clearItemByUser(@Param('userId') userId: string) {
     return this.clearCartUseCase.execute(userId);
   }
 }

@@ -1,6 +1,5 @@
 import { Cart } from '../../../domain/entities/cart.entity';
 
-
 export interface CartGetResponseDto {
   cart: Cart;
   statusCode: number;
@@ -14,4 +13,3 @@ export interface SuccessResponseDto {
   statusCode: number;
   message: string;
 }
-

@@ -9,7 +9,7 @@ export enum DomainErrorMessages {
 
 export enum DomainSuccessMessages {
   GET_CART_SUCESS = 'Carrito obtenido con éxito',
-  DELETE_CART_SUCESS = 'Carrito eliminado con éxito',
-  CREATE_ITEM_CART_SUCCESS = 'Item Carrito creado con éxito',
-  REMOVE_ITEM_CART_SUCCESS = 'Item Carrito creado con éxito'
+  REMOVE_ITEM_SUCESS = 'Item eliminado con éxito',
+  CREATE_ITEM_CART_SUCCESS = 'Item Carrito agregado con éxito',
+  CLEAR_ITEMS_CART_SUCCESS = 'Carrito vaciado con éxito',
 }

@@ -27,8 +27,7 @@ export type CartProperties = CartRequired & Partial<CartOptional>;
 // =======================================================
 
 export type CartPropertiesUpdate = Partial<
-  Pick<CartRequired, 'items'> &
-    Pick<CartOptional, 'updatedAt' | 'deletedAt'>
+  Pick<CartRequired, 'items'> & Pick<CartOptional, 'updatedAt' | 'deletedAt'>
 >;
 
 // =======================================================

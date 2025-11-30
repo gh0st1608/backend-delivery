@@ -15,30 +15,34 @@ import { CartEventPublisherSymbol } from '../../domain/services/cart-event.publi
 export class RemoveItemUseCase {
   constructor(
     @Inject(CartRepositorySymbol) private readonly cartRepo: CartRepository,
-    @Inject(CartEventPublisherSymbol) private readonly publisher: EventBridgeCartEventPublisher,
+    @Inject(CartEventPublisherSymbol)
+    private readonly publisher: EventBridgeCartEventPublisher,
   ) {}
 
   async execute(userId: string, productId: string) {
-    const cart = await this.cartRepo.getByUserId(userId);
-    if (!cart) throw CartNotFoundException;
+    try {
+      const cart = await this.cartRepo.getByUserId(userId);
+      if (!cart) throw CartNotFoundException;
+      cart.removeItem(productId);
+      const cartId = await this.cartRepo.save(cart);
 
-    cart.removeItem(productId);
-    const cartId = await this.cartRepo.save(cart);
+      const ev = buildDomainEvent(CART_EVENTS.ITEM_REMOVED, {
+        userId,
+        productId,
+        total: cart.total(),
+      });
 
-    const ev = buildDomainEvent(CART_EVENTS.ITEM_REMOVED, {
-      userId,
-      productId,
-      total: cart.total(),
-    });
+      await this.publisher.publishItemRemoved(ev);
 
-    await this.publisher.publishItemRemoved(ev);
-
-    return {
-      cart: {
-        cartId,
-      },
-      statusCode: HttpStatusResponse.OK,
-      message: DomainSuccessMessages.REMOVE_ITEM_CART_SUCCESS,
-    };
+      return {
+        cart: {
+          cartId,
+        },
+        statusCode: HttpStatusResponse.OK,
+        message: DomainSuccessMessages.REMOVE_ITEM_SUCESS,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }

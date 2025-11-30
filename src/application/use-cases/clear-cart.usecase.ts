@@ -15,27 +15,32 @@ import { CartEventPublisherSymbol } from '../../domain/services/cart-event.publi
 export class ClearCartUseCase {
   constructor(
     @Inject(CartRepositorySymbol) private readonly cartRepo: CartRepository,
-    @Inject(CartEventPublisherSymbol) private readonly publisher: EventBridgeCartEventPublisher,
+    @Inject(CartEventPublisherSymbol)
+    private readonly publisher: EventBridgeCartEventPublisher,
   ) {}
 
   async execute(userId: string) {
-    const cart = await this.cartRepo.getByUserId(userId);
-    if (!cart) throw CartNotFoundException;
+    try {
+      const cart = await this.cartRepo.getByUserId(userId);
+      if (!cart) throw CartNotFoundException;
 
-    cart.clear();
+      cart.clear();
 
-    const cartId = await this.cartRepo.save(cart);
+      const cartId = await this.cartRepo.save(cart);
 
-    const ev = buildDomainEvent(CART_EVENTS.CART_CLEARED, { userId });
+      const ev = buildDomainEvent(CART_EVENTS.CART_CLEARED, { userId });
 
-    await this.publisher.publishCartCleared(ev);
+      await this.publisher.publishCartCleared(ev);
 
-    return {
-      cart: {
-        cartId,
-      },
-      statusCode: HttpStatusResponse.OK,
-      message: DomainSuccessMessages.REMOVE_ITEM_CART_SUCCESS,
-    };
+      return {
+        cart: {
+          cartId,
+        },
+        statusCode: HttpStatusResponse.OK,
+        message: DomainSuccessMessages.CLEAR_ITEMS_CART_SUCCESS,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }

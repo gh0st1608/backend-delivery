@@ -14,16 +14,20 @@ export class GetCartUseCase {
   ) {}
 
   async execute(userId: string) {
-    const cart = await this.cartRepo.getByUserId(userId);
-    if (!cart) throw CartNotFoundException;
+    try {
+      const cart = await this.cartRepo.getByUserId(userId);
+      if (!cart) throw CartNotFoundException;
 
-    return {
-      cart: {
-        items: cart.listItems(),
-        //total: cart.total(),
-      },
-      statusCode: HttpStatusResponse.OK,
-      message: DomainSuccessMessages.GET_CART_SUCESS,
-    };
+      return {
+        cart: {
+          items: cart.listItems(),
+          //total: cart.total(),
+        },
+        statusCode: HttpStatusResponse.OK,
+        message: DomainSuccessMessages.GET_CART_SUCESS,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }

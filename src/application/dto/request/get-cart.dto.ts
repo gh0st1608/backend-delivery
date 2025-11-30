@@ -1,7 +1,7 @@
 import { IsString, IsNotEmpty } from 'class-validator';
 
 export class GetCartDto {
-  @IsString() 
-  @IsNotEmpty() 
+  @IsString()
+  @IsNotEmpty()
   userId!: string;
 }

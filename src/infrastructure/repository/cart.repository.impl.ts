@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import {
   DynamoDBDocumentClient,
-  GetCommand,
   PutCommand,
   DeleteCommand,
+  QueryCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { Cart } from '../../domain/entities/cart.entity';
@@ -27,23 +27,26 @@ export class CartRepositoryImpl implements CartRepository {
   }
 
   async getByUserId(userId: string): Promise<Cart | null> {
-    const resp = await this.docClient.send(
-      new GetCommand({
+    const cart = await this.docClient.send(
+      new QueryCommand({
         TableName: this.tableName,
-        Key: { userId },
+        IndexName: 'GSI_UserId',
+        KeyConditionExpression: 'userId = :u',
+        ExpressionAttributeValues: {
+          ':u': userId,
+        },
+        Limit: 1,
       }),
     );
-
-    if (!resp.Item) {
-      return null;
-    }
+    const cartData = cart.Items?.[0];
+    if (!cartData) return null;
 
     return new Cart({
-      cartId: resp.Item.cartId,
-      userId: resp.Item.userId,
-      items: resp.Item.items ?? [],
-      createdAt: new Date(resp.Item.createdAt),
-      updatedAt: new Date(resp.Item.updatedAt),
+      cartId: cartData.cartId,
+      userId: cartData.userId,
+      items: cartData.items ?? [],
+      createdAt: new Date(cartData.createdAt),
+      updatedAt: new Date(cartData.updatedAt),
     });
   }
 
@@ -57,7 +60,7 @@ export class CartRepositoryImpl implements CartRepository {
           cartId: props.cartId,
           userId: props.userId,
           items: props.items,
-          createdAt: props.createdAt
+          createdAt: props.createdAt.toISOString(),
         },
       }),
     );
