@@ -16,12 +16,16 @@ export class GetProductsUseCase {
   ) {}
 
   async execute(query: GetProductsDto): Promise<GetProductsResponseDto> {
-    const { items, nextCursor } = await this.productRepository.getList(query);
-    return {
-      items,
-      nextCursor,
-      statusCode: HttpStatusResponse.OK,
-      message: DomainSuccessMessages.GET_PRODUCTS_SUCCESS,
-    };
+    try {
+      const { items, nextCursor } = await this.productRepository.getList(query);
+      return {
+        items,
+        nextCursor,
+        statusCode: HttpStatusResponse.OK,
+        message: DomainSuccessMessages.GET_PRODUCTS_SUCCESS,
+      };
+    } catch (error) {
+      console.log(error);
+    }
   }
 }

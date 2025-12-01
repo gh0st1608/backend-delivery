@@ -16,16 +16,20 @@ export class GetProductByIdUseCase {
   ) {}
 
   async execute(id: string): Promise<GetProductResponseDto> {
-    const product = await this.productRepository.getById(id);
+    try {
+      const product = await this.productRepository.getById(id);
 
-    if (!product) {
-      throw new ProductNotFoundException();
+      if (!product) {
+        throw new ProductNotFoundException();
+      }
+
+      return {
+        product,
+        statusCode: HttpStatusResponse.OK,
+        message: DomainSuccessMessages.GET_PRODUCT_SUCCESS,
+      };
+    } catch (error) {
+      console.log(error);
     }
-
-    return {
-      product,
-      statusCode: HttpStatusResponse.OK,
-      message: DomainSuccessMessages.GET_PRODUCT_SUCCESS,
-    };
   }
 }

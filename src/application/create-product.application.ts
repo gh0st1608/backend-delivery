@@ -19,25 +19,28 @@ export class CreateProductUseCase {
   async execute(
     createProductDto: CreateProductDto,
   ): Promise<CreateProductResponseDto> {
-    const { name, description, price, stock } = createProductDto.Product;
-    // 1. Crear entidad desde el Factory del dominio
-    const product = Product.create({
-      name,
-      description,
-      price,
-      stock,
-    });
+    try {
+      const { name, description, price, stock } = createProductDto.Product;
+      const product = Product.create({
+        name,
+        description,
+        price,
+        stock,
+      });
 
-    // 2. Persistir en el repositorio (hexagonal)
-    const productId = await this.productRepository.save(product);
+      // 2. Persistir en el repositorio (hexagonal)
+      const productId = await this.productRepository.save(product);
 
-    // 3. Retornar DTO con mensaje y estado
-    return {
-      product: {
-        id: productId,
-      },
-      statusCode: HttpStatusResponse.OK,
-      message: DomainSuccessMessages.CREATE_PRODUCT_SUCCESS,
-    };
+      // 3. Retornar DTO con mensaje y estado
+      return {
+        product: {
+          id: productId,
+        },
+        statusCode: HttpStatusResponse.OK,
+        message: DomainSuccessMessages.CREATE_PRODUCT_SUCCESS,
+      };
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
