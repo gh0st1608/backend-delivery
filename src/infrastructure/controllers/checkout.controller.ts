@@ -5,8 +5,8 @@ import { ClearCartUseCase } from '../../application/use-cases/clear-cart.usecase
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ItemCartDto } from '../../application/dto/request/create-item-cart.dto';
 
-@Controller('cart')
-export class CartController {
+@Controller('checkout')
+export class CheckoutController {
   constructor(
     private readonly createItemCartUseCase: CreateItemCartUseCase,
     private readonly getCartUseCase: GetCartUseCase,
@@ -14,17 +14,17 @@ export class CartController {
     private readonly clearCartUseCase: ClearCartUseCase,
   ) {}
 
-  @Post(':userId/items')
+  @Post('cart/:userId/items')
   async addItem(@Param('userId') userId: string, @Body() body: ItemCartDto) {
     return this.createItemCartUseCase.execute(userId, body);
   }
 
-  @Get(':userId')
+  @Get('cart/:userId')
   async getByUser(@Param('userId') userId: string) {
     return this.getCartUseCase.execute(userId);
   }
 
-  @Delete('/:userId/items/:productId')
+  @Delete('cart/:userId/items/:productId')
   async deleteItemByUser(
     @Param('userId') userId: string,
     @Param('productId') productId: string,
@@ -32,7 +32,7 @@ export class CartController {
     return this.removeItemUseCase.execute(userId, productId);
   }
 
-  @Delete('/:userId')
+  @Delete('cart/:userId')
   async clearItemByUser(@Param('userId') userId: string) {
     return this.clearCartUseCase.execute(userId);
   }

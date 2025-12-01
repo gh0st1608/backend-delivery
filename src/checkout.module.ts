@@ -2,7 +2,7 @@
 
 import { Module } from '@nestjs/common';
 import { CartRepositoryImpl } from './infrastructure/repository/cart.repository.impl';
-import { CartController } from './infrastructure/controllers/cart.controller';
+import { CheckoutController } from './infrastructure/controllers/checkout.controller';
 import { ConfigModule } from '@nestjs/config';
 import { ClearCartUseCase } from './application/use-cases/clear-cart.usecase';
 import { CreateItemCartUseCase } from './application/use-cases/create-item-cart.usecase';
@@ -19,7 +19,7 @@ import { CartEventPublisherSymbol } from './domain/services/cart-event.publisher
       isGlobal: true,
     }),
   ],
-  controllers: [CartController],
+  controllers: [CheckoutController],
   providers: [
     ClearCartUseCase,
     CreateItemCartUseCase,
@@ -35,4 +35,4 @@ import { CartEventPublisherSymbol } from './domain/services/cart-event.publisher
     },
   ],
 })
-export class CartModule {}
+export class CheckoutModule {}
