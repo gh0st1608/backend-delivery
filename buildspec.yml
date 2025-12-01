@@ -16,7 +16,7 @@ phases:
     commands:
       - echo "Compilando Lambda..."
       - npm run build:lambda
-      - echo "Copiando archivos necesarios al directorio de build.."
+      - echo "Copiando archivos necesarios al directorio de build."
       - cp package.json package-lock.json .build-lambda/
       - cd .build-lambda
       - npm ci --omit=dev --no-audit
