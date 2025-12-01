@@ -28,14 +28,14 @@ export class OrderRepositoryImpl implements OrderRepository {
 
   async save(order: Order): Promise<string> {
     const props = order.properties();
-
+    console.log('props',props)
     await this.docClient.send(
       new PutCommand({
         TableName: this.tableName,
         Item: {
           ...props,
           createdAt: props.createdAt.toISOString(),
-          updatedAt: props.updatedAt?.toISOString(),
+          updatedAt: props.updatedAt.toISOString(),
         },
       }),
     );
@@ -60,6 +60,9 @@ export class OrderRepositoryImpl implements OrderRepository {
       items: orderData.items,
       totalAmount: orderData.totalAmount,
       status: orderData.status,
+      createdAt: orderData.createdAt,
+      updatedAt: orderData.updatedAt,
+      deletedAt: orderData.deletedAt,
     });
   }
 }

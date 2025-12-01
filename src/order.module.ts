@@ -7,6 +7,7 @@ import { OrderRepositoryImpl } from './infrastructure/repository/order.repositor
 import { OrderEventPublisherSymbol } from './domain/services/order-event.publisher';
 import { EventBridgeOrderEventPublisher } from './infrastructure/eventbridge/eventbridge-order-event.publisher';
 import { ConfigModule } from '@nestjs/config';
+import { UpdateOrderStatusUseCase } from './application/use-cases/update-status.application';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ConfigModule } from '@nestjs/config';
   providers: [
     CreateOrderUseCase,
     GetOrderByIdUseCase,
+    UpdateOrderStatusUseCase,
     {
       provide: OrderRepositorySymbol,
       useClass: OrderRepositoryImpl,
