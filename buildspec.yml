@@ -3,8 +3,8 @@ version: 0.2
 env:
   variables:
     S3_BUCKET: foodstore-microservices-lambdas-functions
-    ZIP_KEY: auth/lambda.zip
-    LAMBDA_NAME: foodstore-auth-service
+    ZIP_KEY: shop/lambda.zip
+    LAMBDA_NAME: foodstore-shop-service
 
 phases:
   install:

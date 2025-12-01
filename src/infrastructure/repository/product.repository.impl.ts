@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import {
   DynamoDBDocumentClient,
-  PutCommand,
   ScanCommand,
   GetCommand,
+  PutCommand,
 } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+
 import { Product } from '../../domain/product.entity';
 import { ProductRepository } from '../../domain/repository/product.repository';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { GetProductsDto } from '../../application/dto/request/get-products-by-params.dto';
 
 @Injectable()
@@ -16,135 +17,125 @@ export class ProductRepositoryImpl implements ProductRepository {
   private readonly tableName = 'Products';
 
   constructor() {
-    const client = new DynamoDBClient({
-      region: process.env.REGION || 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.ACCESS_KEY_ID!,
-        secretAccessKey: process.env.SECRET_ACCESS_KEY!,
-      },
-    });
-
-    this.docClient = DynamoDBDocumentClient.from(client);
+    this.docClient = DynamoDBDocumentClient.from(
+      new DynamoDBClient({
+        region: process.env.REGION ?? 'us-east-1',
+        credentials: {
+          accessKeyId: process.env.ACCESS_KEY_ID!,
+          secretAccessKey: process.env.SECRET_ACCESS_KEY!,
+        },
+      }),
+    );
   }
 
-  async getList(query: GetProductsDto): Promise<{
-    items: Product[];
-    nextCursor: string;
-  }> {
-    try {
-      const limit = query.limit ?? 10;
+  // ===========================================================================
+  // PUBLIC METHODS
+  // ===========================================================================
 
-      // Decode del cursor (ExclusiveStartKey)
-      let exclusiveStartKey = undefined;
-      if (query.cursor) {
-        exclusiveStartKey = JSON.parse(
-          Buffer.from(query.cursor, 'base64').toString('utf8'),
-        );
-      }
+  async getList(query: GetProductsDto) {
+    const limit = Number(query.limit) || 10;
+    const cursor = this.decodeCursor(query.cursor);
 
-      const scanParams: any = {
-        TableName: this.tableName,
-        Limit: limit,
-        ExclusiveStartKey: exclusiveStartKey,
-      };
-
-      // Si quieres búsqueda por texto, se activa Scan + FilterExpression
-      if (query.search) {
-        scanParams.FilterExpression = 'contains (#name, :search)';
-        scanParams.ExpressionAttributeNames = {
-          '#name': 'name',
-        };
-        scanParams.ExpressionAttributeValues = {
-          ':search': query.search,
-        };
-      }
-
-      const result = await this.docClient.send(new ScanCommand(scanParams));
-
-      const items = (result.Items ?? []).map(
-        (item) =>
-          new Product({
-            productId: item.productId,
-            name: item.name,
-            description: item.description,
-            price: item.price,
-            stock: item.stock,
-            category: item.category,
-            active: item.active,
-            createdAt: new Date(item.createdAt),
-            updatedAt: new Date(item.updatedAt),
-          }),
-      );
-
-      let nextCursor = undefined;
-
-      if (result.LastEvaluatedKey) {
-        nextCursor = Buffer.from(
-          JSON.stringify(result.LastEvaluatedKey),
-        ).toString('base64');
-      }
-
-      return {
-        items,
-        nextCursor,
-      };
-    } catch (error) {
-      throw error;
+    if (query.search) {
+      return this.scanWithSearch(query.search, limit, cursor);
     }
+
+    return this.scanWithoutSearch(limit, cursor);
   }
 
-  async getById(id: string): Promise<Product | null> {
+  async getById(id: string): Promise<any | null> {
     const result = await this.docClient.send(
       new GetCommand({
         TableName: this.tableName,
         Key: { productId: id },
       }),
     );
-    try {
-      const data = result.Item;
-      if (!data) return null;
 
-      return new Product({
-        productId: data.productId,
-        name: data.name,
-        description: data.description,
-        price: data.price,
-        stock: data.stock,
-        category: data.category,
-        //photo: data.photo,
-        active: data.active,
-        createdAt: new Date(data.createdAt),
-        updatedAt: new Date(data.updatedAt),
-      });
-    } catch (error) {
-      throw error;
-    }
+    return result.Item ?? null;
   }
 
   async save(product: Product): Promise<string> {
-    try {
-      const props = product.properties();
+    const props = product.properties();
 
-      const command = new PutCommand({
+    await this.docClient.send(
+      new PutCommand({
         TableName: this.tableName,
         Item: {
-          productId: props.productId,
-          name: props.name,
-          description: props.description,
-          price: props.price,
-          stock: props.stock,
-          category: props.category,
-          //photo: props.photo,
-          active: props.active,
+          ...props,
           createdAt: props.createdAt?.toISOString(),
           updatedAt: props.updatedAt?.toISOString() ?? new Date().toISOString(),
         },
-      });
+      }),
+    );
 
-      await this.docClient.send(command);
-      return props.productId;
-    } catch (error) {
-      throw error;
+    return props.productId;
+  }
+
+  // ===========================================================================
+  // PRIVATE: SCAN METHODS (MINIMAL)
+  // ===========================================================================
+
+  private async scanWithoutSearch(limit: number, cursor: any) {
+    const result = await this.docClient.send(
+      new ScanCommand({
+        TableName: this.tableName,
+        Limit: limit,
+        ExclusiveStartKey: cursor,
+      }),
+    );
+
+    return {
+      items: result.Items ?? [],
+      nextCursor: this.encodeCursor(result.LastEvaluatedKey),
+    };
+  }
+
+  private async scanWithSearch(search: string, limit: number, cursor: any) {
+    const result = await this.docClient.send(
+      new ScanCommand({
+        TableName: this.tableName,
+        ExclusiveStartKey: cursor,
+        FilterExpression: 'contains (#name, :s)',
+        ExpressionAttributeNames: { '#name': 'name' },
+        ExpressionAttributeValues: { ':s': search },
+      }),
+    );
+
+    const items = result.Items ?? [];
+    const { page, hasNextPage } = this.applyPagination(items, limit);
+
+    return {
+      items: page,
+      nextCursor: hasNextPage
+        ? this.encodeCursor(result.LastEvaluatedKey)
+        : undefined,
+    };
+  }
+
+  // ===========================================================================
+  // UTILITIES (SE CONSERVAN)
+  // ===========================================================================
+
+  private decodeCursor(cursor?: string) {
+    try {
+      return cursor
+        ? JSON.parse(Buffer.from(cursor, 'base64').toString('utf8'))
+        : undefined;
+    } catch {
+      return undefined;
     }
+  }
+
+  private encodeCursor(key?: any) {
+    return key
+      ? Buffer.from(JSON.stringify(key)).toString('base64')
+      : undefined;
+  }
+
+  private applyPagination(items: any[], limit: number) {
+    return {
+      page: items.slice(0, limit),
+      hasNextPage: items.length > limit,
+    };
   }
 }
