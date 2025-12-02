@@ -35,7 +35,7 @@ export class OrderRepositoryImpl implements OrderRepository {
         Item: {
           ...props,
           createdAt: props.createdAt.toISOString(),
-          updatedAt: props.updatedAt.toISOString(),
+          updatedAt: props.updatedAt?.toISOString() ?? null
         },
       }),
     );
