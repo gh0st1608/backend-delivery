@@ -5,8 +5,10 @@ import {
   IsNotEmpty,
   IsNumber,
   ValidateNested,
+  IsArray,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IngredientDto } from './create-ingredient.dto';
 
 export class ProductPayloadDto {
   @IsString()
@@ -28,6 +30,12 @@ export class ProductPayloadDto {
   @IsOptional()
   @IsNumber()
   stock: number;
+
+  @IsOptional()
+  @IsArray({ message: 'Ingredients debe ser un arreglo' })
+  @ValidateNested({ each: true })
+  @Type(() => IngredientDto)
+  ingredients?: IngredientDto[];
 }
 
 export class CreateProductDto {

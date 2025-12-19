@@ -5,11 +5,14 @@ import {
   GetCommand,
   PutCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, AttributeValue } from '@aws-sdk/client-dynamodb';
 
-import { Product } from '../../domain/product.entity';
+import { Product, Cursor } from '../../domain/product.entity';
+import { PaginatedResult } from '../../application/dto/response/response-custom.dto';
 import { ProductRepository } from '../../domain/repository/product.repository';
 import { GetProductsDto } from '../../application/dto/request/get-products-by-params.dto';
+
+export type DynamoCursor = Record<string, AttributeValue>;
 
 @Injectable()
 export class ProductRepositoryImpl implements ProductRepository {
@@ -25,6 +28,11 @@ export class ProductRepositoryImpl implements ProductRepository {
           secretAccessKey: process.env.SECRET_ACCESS_KEY!,
         },
       }),
+      {
+        marshallOptions: {
+          removeUndefinedValues: true,
+        },
+      },
     );
   }
 
@@ -32,9 +40,9 @@ export class ProductRepositoryImpl implements ProductRepository {
   // PUBLIC METHODS
   // ===========================================================================
 
-  async getList(query: GetProductsDto) {
+  async getList(query: GetProductsDto): Promise<PaginatedResult<Product>> {
     const limit = Number(query.limit) || 10;
-    const cursor = this.decodeCursor(query.cursor);
+    const cursor = this.decodeCursor(query.cursor as Cursor);
 
     if (query.search) {
       return this.scanWithSearch(query.search, limit, cursor);
@@ -43,7 +51,7 @@ export class ProductRepositoryImpl implements ProductRepository {
     return this.scanWithoutSearch(limit, cursor);
   }
 
-  async getById(id: string): Promise<any | null> {
+  async getById(id: string): Promise<Product | null> {
     const result = await this.docClient.send(
       new GetCommand({
         TableName: this.tableName,
@@ -51,31 +59,30 @@ export class ProductRepositoryImpl implements ProductRepository {
       }),
     );
 
-    return result.Item ?? null;
+    return result.Item ? this.toDomain(result.Item) : null;
   }
 
   async save(product: Product): Promise<string> {
-    const props = product.properties();
+    const primitives = product.toPrimitives();
 
     await this.docClient.send(
       new PutCommand({
         TableName: this.tableName,
-        Item: {
-          ...props,
-          createdAt: props.createdAt?.toISOString(),
-          updatedAt: props.updatedAt?.toISOString() ?? new Date().toISOString(),
-        },
+        Item: primitives,
       }),
     );
 
-    return props.productId;
+    return primitives.productId;
   }
 
   // ===========================================================================
-  // PRIVATE: SCAN METHODS (MINIMAL)
+  // PRIVATE: SCAN METHODS
   // ===========================================================================
 
-  private async scanWithoutSearch(limit: number, cursor: any) {
+  private async scanWithoutSearch(
+    limit: number,
+    cursor?: DynamoCursor,
+  ): Promise<PaginatedResult<Product>> {
     const result = await this.docClient.send(
       new ScanCommand({
         TableName: this.tableName,
@@ -84,13 +91,20 @@ export class ProductRepositoryImpl implements ProductRepository {
       }),
     );
 
+    const items = result.Items ?? [];
+
     return {
-      items: result.Items ?? [],
+      items: items.map(this.toDomain),
+      count: items.length,
       nextCursor: this.encodeCursor(result.LastEvaluatedKey),
     };
   }
 
-  private async scanWithSearch(search: string, limit: number, cursor: any) {
+  private async scanWithSearch(
+    search: string,
+    limit: number,
+    cursor?: DynamoCursor,
+  ): Promise<PaginatedResult<Product>> {
     const result = await this.docClient.send(
       new ScanCommand({
         TableName: this.tableName,
@@ -102,40 +116,51 @@ export class ProductRepositoryImpl implements ProductRepository {
     );
 
     const items = result.Items ?? [];
-    const { page, hasNextPage } = this.applyPagination(items, limit);
+    const page = items.slice(0, limit);
 
     return {
-      items: page,
-      nextCursor: hasNextPage
-        ? this.encodeCursor(result.LastEvaluatedKey)
-        : undefined,
+      items: page.map(this.toDomain),
+      count: items.length,
+      nextCursor:
+        items.length > limit
+          ? this.encodeCursor(result.LastEvaluatedKey)
+          : undefined,
     };
   }
 
   // ===========================================================================
-  // UTILITIES (SE CONSERVAN)
+  // CURSOR ENCODER / DECODER
   // ===========================================================================
 
-  private decodeCursor(cursor?: string) {
-    try {
-      return cursor
-        ? JSON.parse(Buffer.from(cursor, 'base64').toString('utf8'))
-        : undefined;
-    } catch {
-      return undefined;
-    }
+  private decodeCursor(cursor?: Cursor): DynamoCursor | undefined {
+    if (!cursor) return undefined;
+
+    return JSON.parse(
+      Buffer.from(cursor, 'base64').toString('utf8'),
+    ) as DynamoCursor;
   }
 
-  private encodeCursor(key?: any) {
-    return key
-      ? Buffer.from(JSON.stringify(key)).toString('base64')
-      : undefined;
+  private encodeCursor(cursor?: DynamoCursor): Cursor | undefined {
+    if (!cursor) return undefined;
+
+    return Buffer.from(JSON.stringify(cursor)).toString('base64') as Cursor;
   }
 
-  private applyPagination(items: any[], limit: number) {
-    return {
-      page: items.slice(0, limit),
-      hasNextPage: items.length > limit,
-    };
-  }
+  private toDomain = (raw: Record<string, any>): Product => {
+    return Product.fromPrimitives({
+      productId: raw.productId,
+      name: raw.name,
+      description: raw.description,
+      price: raw.price,
+      stock: raw.stock,
+      category: raw.category,
+      sku: raw.sku,
+      image: raw.image,
+      ingredients: raw.ingredients,
+      active: raw.active,
+      createdAt: new Date(raw.createdAt),
+      updatedAt: raw.updatedAt ? new Date(raw.updatedAt) : null,
+      deletedAt: raw.deletedAt ? new Date(raw.deletedAt) : null,
+    });
+  };
 }

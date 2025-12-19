@@ -1,4 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
+import { Ingredient, IngredientProperties } from './ingredient.value-object';
+
+export type Cursor = string & { readonly __brand: unique symbol };
 
 export interface ProductRequired {
   readonly name: string;
@@ -12,6 +15,7 @@ export interface ProductOptional {
   readonly category: string;
   readonly sku: string;
   readonly image: string;
+  readonly ingredients: Ingredient[];
   readonly active: boolean;
   readonly createdAt: Date;
   readonly updatedAt: Date;
@@ -34,6 +38,7 @@ export class Product {
   private category: string;
   private sku: string;
   private image: string;
+  private ingredients: Ingredient[];
   private active: boolean;
   private readonly createdAt: Date;
   private updatedAt: Date | null;
@@ -54,6 +59,7 @@ export class Product {
       category: this.category,
       sku: this.sku,
       image: this.image,
+      ingredients: this.ingredients,
       active: this.active,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
@@ -69,6 +75,7 @@ export class Product {
     category?: string;
     sku?: string;
     image?: string;
+    ingredients: IngredientProperties[];
   }): Product {
     const now = new Date();
 
@@ -81,6 +88,7 @@ export class Product {
       category: data.category ?? '',
       sku: data.sku ?? '',
       image: data.image ?? '',
+      ingredients: data.ingredients.map((i) => new Ingredient(i)),
       active: true,
       createdAt: now,
       updatedAt: null,
@@ -97,4 +105,68 @@ export class Product {
     this.active = false;
     this.deletedAt = new Date();
   }
+
+  updateIngredient(
+    ingredientName: string,
+    data: { quantity?: number; unit?: string },
+  ): void {
+    const index = this.ingredients.findIndex((i) => i.name === ingredientName);
+
+    const current = this.ingredients[index];
+
+    this.ingredients[index] = new Ingredient({
+      name: current.name,
+      quantity: data.quantity ?? current.quantity,
+      unit: (data.unit as any) ?? current.unit,
+    });
+
+    this.updatedAt = new Date();
+  }
+
+  addIngredient(ingredient: Ingredient): void {
+    this.ingredients.push(ingredient);
+    this.updatedAt = new Date();
+  }
+
+  removeIngredient(name: string): void {
+    this.ingredients = this.ingredients.filter((i) => i.name !== name);
+    this.updatedAt = new Date();
+  }
+
+  toPrimitives() {
+    return {
+      productId: this.productId,
+      name: this.name,
+      description: this.description,
+      price: this.price,
+      stock: this.stock,
+      category: this.category,
+      sku: this.sku,
+      image: this.image,
+      active: this.active,
+      ingredients: this.ingredients.map((i) => i.toPrimitives()),
+      createdAt: this.createdAt.toISOString(),
+      updatedAt: this.updatedAt?.toISOString() ?? null,
+      deletedAt: this.deletedAt?.toISOString() ?? null,
+    };
+  }
+
+  static fromPrimitives(raw: any): Product {
+    return new Product({
+      productId: raw.productId,
+      name: raw.name,
+      description: raw.description,
+      price: raw.price,
+      stock: raw.stock,
+      category: raw.category,
+      sku: raw.sku,
+      image: raw.image,
+      active: raw.active,
+      ingredients: raw.ingredients?.map(Ingredient.fromPrimitives) ?? [],
+      createdAt: new Date(raw.createdAt),
+      updatedAt: raw.updatedAt ? new Date(raw.updatedAt) : null,
+      deletedAt: raw.deletedAt ? new Date(raw.deletedAt) : null,
+    });
+  }
+
 }

@@ -20,14 +20,14 @@ export class CreateProductUseCase {
     createProductDto: CreateProductDto,
   ): Promise<CreateProductResponseDto> {
     try {
-      const { name, description, price, stock } = createProductDto.Product;
+      const { name, description, price, stock, ingredients } = createProductDto.Product;
       const product = Product.create({
         name,
         description,
         price,
         stock,
+        ingredients
       });
-
       // 2. Persistir en el repositorio (hexagonal)
       const productId = await this.productRepository.save(product);
 
