@@ -7,18 +7,18 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient, AttributeValue } from '@aws-sdk/client-dynamodb';
 
-import { Product } from '../../domain/product.entity';
 import { Cursor } from '../../domain/types/shared';
+import { Category } from '../../domain/category.entity';
 import { PaginatedResult } from '../../application/dto/response/response-custom.dto';
-import { ProductRepository } from '../../domain/repository/product.repository';
+import { CategoryRepository } from '../../domain/repository/category.repository';
 import { GetByParamsDto } from '../../application/dto/request/get-by-params.dto';
 
 export type DynamoCursor = Record<string, AttributeValue>;
 
 @Injectable()
-export class ProductRepositoryImpl implements ProductRepository {
+export class CategoryRepositoryImpl implements CategoryRepository {
   private readonly docClient: DynamoDBDocumentClient;
-  private readonly tableName = 'Products';
+  private readonly tableName = 'Categories';
 
   constructor() {
     this.docClient = DynamoDBDocumentClient.from(
@@ -41,7 +41,7 @@ export class ProductRepositoryImpl implements ProductRepository {
   // PUBLIC METHODS
   // ===========================================================================
 
-  async getList(query: GetByParamsDto): Promise<PaginatedResult<Product>> {
+  async getList(query: GetByParamsDto): Promise<PaginatedResult<Category>> {
     const limit = Number(query.limit) || 10;
     const cursor = this.decodeCursor(query.cursor as Cursor);
 
@@ -52,19 +52,19 @@ export class ProductRepositoryImpl implements ProductRepository {
     return this.scanWithoutSearch(limit, cursor);
   }
 
-  async getById(id: string): Promise<Product | null> {
+  async getById(id: string): Promise<Category | null> {
     const result = await this.docClient.send(
       new GetCommand({
         TableName: this.tableName,
-        Key: { productId: id },
+        Key: { categoryId: id },
       }),
     );
 
     return result.Item ? this.toDomain(result.Item) : null;
   }
 
-  async save(product: Product): Promise<string> {
-    const primitives = product.toPrimitives();
+  async save(category: Category): Promise<string> {
+    const primitives = category.toPrimitives();
 
     await this.docClient.send(
       new PutCommand({
@@ -73,7 +73,7 @@ export class ProductRepositoryImpl implements ProductRepository {
       }),
     );
 
-    return primitives.productId;
+    return primitives.categoryId;
   }
 
   // ===========================================================================
@@ -83,7 +83,7 @@ export class ProductRepositoryImpl implements ProductRepository {
   private async scanWithoutSearch(
     limit: number,
     cursor?: DynamoCursor,
-  ): Promise<PaginatedResult<Product>> {
+  ): Promise<PaginatedResult<Category>> {
     const result = await this.docClient.send(
       new ScanCommand({
         TableName: this.tableName,
@@ -105,7 +105,7 @@ export class ProductRepositoryImpl implements ProductRepository {
     search: string,
     limit: number,
     cursor?: DynamoCursor,
-  ): Promise<PaginatedResult<Product>> {
+  ): Promise<PaginatedResult<Category>> {
     const result = await this.docClient.send(
       new ScanCommand({
         TableName: this.tableName,
@@ -147,17 +147,16 @@ export class ProductRepositoryImpl implements ProductRepository {
     return Buffer.from(JSON.stringify(cursor)).toString('base64') as Cursor;
   }
 
-  private toDomain = (raw: Record<string, any>): Product => {
-    return Product.fromPrimitives({
-      productId: raw.productId,
+  // ===========================================================================
+  // MAPPER
+  // ===========================================================================
+
+  private toDomain = (raw: Record<string, any>): Category => {
+    return Category.fromPrimitives({
+      categoryId: raw.categoryId,
       name: raw.name,
       description: raw.description,
-      price: raw.price,
-      stock: raw.stock,
-      category: raw.category,
-      sku: raw.sku,
       image: raw.image,
-      ingredients: raw.ingredients,
       active: raw.active,
       createdAt: new Date(raw.createdAt),
       updatedAt: raw.updatedAt ? new Date(raw.updatedAt) : null,

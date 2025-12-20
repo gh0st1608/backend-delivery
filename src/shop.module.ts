@@ -8,6 +8,10 @@ import { ConfigModule } from '@nestjs/config';
 import { CreateProductUseCase } from './application/create-product.application';
 import { GetProductByIdUseCase } from './application/get-product-by-id.application';
 import { GetProductsUseCase } from './application/get-products.application';
+import { GetCategoriesUseCase } from './application/get-categories.application';
+import { CategoryRepositoryImpl } from './infrastructure/repository/category.repository.impl';
+import { CategoryRepositorySymbol } from './domain/repository/category.repository';
+import { CreateCategoryUseCase } from './application/create-product.application copy';
 
 @Module({
   imports: [
@@ -21,9 +25,15 @@ import { GetProductsUseCase } from './application/get-products.application';
     CreateProductUseCase,
     GetProductByIdUseCase,
     GetProductsUseCase,
+    GetCategoriesUseCase,
+    CreateCategoryUseCase,
     {
       provide: ProductRepositorySymbol,
       useClass: ProductRepositoryImpl,
+    },
+    {
+      provide: CategoryRepositorySymbol,
+      useClass: CategoryRepositoryImpl,
     },
   ],
 })

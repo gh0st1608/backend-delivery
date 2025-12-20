@@ -1,7 +1,7 @@
 import { IsOptional, IsString, IsInt, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class GetProductsDto {
+export class GetByParamsDto {
   @IsOptional()
   @IsString()
   search?: string;

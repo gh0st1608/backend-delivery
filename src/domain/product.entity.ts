@@ -1,8 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Ingredient, IngredientProperties } from './ingredient.value-object';
 
-export type Cursor = string & { readonly __brand: unique symbol };
-
 export interface ProductRequired {
   readonly name: string;
   readonly description: string;
@@ -12,7 +10,7 @@ export interface ProductRequired {
 
 export interface ProductOptional {
   readonly productId: string;
-  readonly category: string;
+  readonly categoryId: string;
   readonly sku: string;
   readonly image: string;
   readonly ingredients: Ingredient[];
@@ -26,7 +24,10 @@ export type ProductProperties = ProductRequired & Partial<ProductOptional>;
 
 export type ProductPropertiesUpdate = Partial<
   Pick<ProductRequired, 'name' | 'description' | 'price' | 'stock'> &
-    Pick<ProductOptional, 'category' | 'sku' | 'image' | 'active' | 'updatedAt'>
+    Pick<
+      ProductOptional,
+      'categoryId' | 'sku' | 'image' | 'active' | 'updatedAt'
+    >
 >;
 
 export class Product {
@@ -35,7 +36,7 @@ export class Product {
   private description: string;
   private price: number;
   private stock: number;
-  private category: string;
+  private categoryId: string;
   private sku: string;
   private image: string;
   private ingredients: Ingredient[];
@@ -56,7 +57,7 @@ export class Product {
       description: this.description,
       price: this.price,
       stock: this.stock,
-      category: this.category,
+      categoryId: this.categoryId,
       sku: this.sku,
       image: this.image,
       ingredients: this.ingredients,
@@ -72,7 +73,7 @@ export class Product {
     description: string;
     price: number;
     stock: number;
-    category?: string;
+    categoryId?: string;
     sku?: string;
     image?: string;
     ingredients: IngredientProperties[];
@@ -85,7 +86,7 @@ export class Product {
       description: data.description,
       price: data.price,
       stock: data.stock,
-      category: data.category ?? '',
+      categoryId: data.categoryId ?? '',
       sku: data.sku ?? '',
       image: data.image ?? '',
       ingredients: data.ingredients.map((i) => new Ingredient(i)),
@@ -140,7 +141,7 @@ export class Product {
       description: this.description,
       price: this.price,
       stock: this.stock,
-      category: this.category,
+      categoryId: this.categoryId,
       sku: this.sku,
       image: this.image,
       active: this.active,
@@ -158,7 +159,7 @@ export class Product {
       description: raw.description,
       price: raw.price,
       stock: raw.stock,
-      category: raw.category,
+      categoryId: raw.categoryId,
       sku: raw.sku,
       image: raw.image,
       active: raw.active,
@@ -168,5 +169,4 @@ export class Product {
       deletedAt: raw.deletedAt ? new Date(raw.deletedAt) : null,
     });
   }
-
 }
