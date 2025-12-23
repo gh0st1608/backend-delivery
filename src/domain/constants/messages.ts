@@ -10,10 +10,16 @@ export enum DomainErrorMessages {
   NOT_EXIST_VERIFICATION_CODE = 'No existe ningún código activo para este usuario',
 }
 
+export enum InfraErrorMessages{
+  SAVE_FAILED = 'Error al guardar en dynamo'
+}
+
 export enum DomainSuccessMessages {
   LOGIN_SUCESS = 'Inicio de sesión exitoso',
   LOGIN_FAILED = 'Inicio de sesión fallido',
   REGISTER_SUCCESS = 'Usuario registrado correctamente',
   EMAIL_VERIFIED = 'Email Validado correctamente',
-  SET_PASSWORD_SUCCESS = 'Contraseña actualizado correctamente'
+  SET_PASSWORD_SUCCESS = 'Contraseña actualizado correctamente',
+  CREATE_PREFERENCE_SUCCESS = 'Preferencia creado con exito',
+  GET_PREFERENCES_SUCCESS = 'Preferencias obtenido con exito'
 }

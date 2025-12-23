@@ -14,6 +14,10 @@ import { VerifyEmailUseCase } from './application/verify-email.application';
 import { EventBridgeUserEventPublisher } from './infrastructure/events/eventbridge-user-event.publisher';
 import { VerifyCodeUseCase } from './application/verify-code.application';
 import { SetPasswordUseCase } from './application/set-password.application';
+import { PreferenceRepositoryImpl } from './infrastructure/repository/preference.repository.impl';
+import { PreferenceRepositorySymbol } from './domain/repository/preference.repository';
+import { CreatePreferencesUseCase } from './application/create-preference.application';
+import { GetPreferencesUseCase } from './application/get-preference.application';
 
 @Module({
   imports: [
@@ -29,6 +33,8 @@ import { SetPasswordUseCase } from './application/set-password.application';
     VerifyEmailUseCase,
     VerifyCodeUseCase,
     SetPasswordUseCase,
+    CreatePreferencesUseCase,
+    GetPreferencesUseCase,
     {
       provide: UserRepositorySymbol,
       useClass: UserRepositoryImpl,
@@ -41,6 +47,11 @@ import { SetPasswordUseCase } from './application/set-password.application';
       provide: UserEventPublisherSymbol,
       useClass: EventBridgeUserEventPublisher,
     },
+    {
+
+      provide: PreferenceRepositorySymbol,
+      useClass: PreferenceRepositoryImpl
+    }
   ],
 })
 export class AuthModule {}

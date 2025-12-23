@@ -2,11 +2,13 @@
 
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { ApplicationException } from '../application/exceptions/application.exception';
+import { InfrastructureException } from './exceptions/infrastructure.exceptions';
 
 export class HelperError {
   static async response(exception: any) {
     const isHttp = exception instanceof HttpException;
     const isApp = exception instanceof ApplicationException;
+    const isInfra = exception instanceof InfrastructureException;
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Error interno del servidor';
@@ -30,6 +32,14 @@ export class HelperError {
       title = exception.title;
       status = 400; // Puedes mapearlo según el `statusCode` si deseas
       statusText = 'BAD_REQUEST';
+    }
+
+    if (isInfra) {
+      code = exception.statusCode;
+      message = exception.message;
+      title = exception.title;
+      status = 500;
+      statusText = 'INTERNAL SERVER ERROR';
     }
 
     return {
