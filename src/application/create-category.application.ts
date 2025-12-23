@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { CreateResult } from '../application/dto/response/response-custom.dto';
+import { CreateResult } from './dto/response/response-custom.dto';
 import {
   CategoryRepository,
   CategoryRepositorySymbol,

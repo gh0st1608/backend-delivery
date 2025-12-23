@@ -4,6 +4,7 @@ import { Ingredient, IngredientProperties } from './ingredient.value-object';
 export interface ProductRequired {
   readonly name: string;
   readonly description: string;
+  readonly categoryId: string;
   readonly price: number;
   readonly stock: number;
 }
@@ -47,6 +48,7 @@ export class Product {
 
   constructor(properties: ProductProperties) {
     this.active = true;
+    this.ingredients = [];
     Object.assign(this, properties);
   }
 
@@ -73,10 +75,10 @@ export class Product {
     description: string;
     price: number;
     stock: number;
-    categoryId?: string;
+    categoryId: string;
     sku?: string;
     image?: string;
-    ingredients: IngredientProperties[];
+    ingredients?: IngredientProperties[];
   }): Product {
     const now = new Date();
 
@@ -89,7 +91,7 @@ export class Product {
       categoryId: data.categoryId ?? '',
       sku: data.sku ?? '',
       image: data.image ?? '',
-      ingredients: data.ingredients.map((i) => new Ingredient(i)),
+      ingredients: (data.ingredients ?? []).map((i) => new Ingredient(i)),
       active: true,
       createdAt: now,
       updatedAt: null,
@@ -136,6 +138,10 @@ export class Product {
 
   toPrimitives() {
     return {
+      PK: `PRODUCT#${this.productId}`,
+      SK: `PRODUCT#${this.productId}`,
+      GSI1PK: `CATEGORY#${this.categoryId}`,
+      GSI1SK: `PRODUCT#${this.productId}`,
       productId: this.productId,
       name: this.name,
       description: this.description,

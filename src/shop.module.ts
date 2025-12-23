@@ -11,7 +11,7 @@ import { GetProductsUseCase } from './application/get-products.application';
 import { GetCategoriesUseCase } from './application/get-categories.application';
 import { CategoryRepositoryImpl } from './infrastructure/repository/category.repository.impl';
 import { CategoryRepositorySymbol } from './domain/repository/category.repository';
-import { CreateCategoryUseCase } from './application/create-product.application copy';
+import { CreateCategoryUseCase } from './application/create-category.application';
 
 @Module({
   imports: [

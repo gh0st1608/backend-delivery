@@ -15,10 +15,6 @@ export class GetProductsUseCase {
     const { items, count, nextCursor } =
       await this.productRepository.getList(query);
 
-    return {
-      items,
-      count,
-      nextCursor,
-    };
+    return { items, count, nextCursor };
   }
 }

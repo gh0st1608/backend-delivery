@@ -4,6 +4,7 @@ import {
   ScanCommand,
   GetCommand,
   PutCommand,
+  QueryCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient, AttributeValue } from '@aws-sdk/client-dynamodb';
 
@@ -38,12 +39,17 @@ export class ProductRepositoryImpl implements ProductRepository {
   }
 
   // ===========================================================================
-  // PUBLIC METHODS
+  // PUBLIC METHODS (solo usan Cursor)
   // ===========================================================================
 
   async getList(query: GetByParamsDto): Promise<PaginatedResult<Product>> {
     const limit = Number(query.limit) || 10;
-    const cursor = this.decodeCursor(query.cursor as Cursor);
+    const cursor = query.cursor as Cursor | undefined;
+
+    if (query.categoryId) {
+      console.log('entro al getbycategory')
+      return this.getByCategory(query.categoryId, limit, cursor);
+    }
 
     if (query.search) {
       return this.scanWithSearch(query.search, limit, cursor);
@@ -63,6 +69,38 @@ export class ProductRepositoryImpl implements ProductRepository {
     return result.Item ? this.toDomain(result.Item) : null;
   }
 
+  async getByCategory(
+    categoryId: string,
+    limit: number,
+    cursor?: Cursor,
+  ): Promise<PaginatedResult<Product>> {
+    try {
+    const result = await this.docClient.send(
+      new QueryCommand({
+        TableName: this.tableName,
+        IndexName: 'GSI_CATEGORY',
+        KeyConditionExpression: 'GSI1PK = :pk',
+        ExpressionAttributeValues: {
+          ':pk': `CATEGORY#${categoryId}`,
+        },
+        Limit: limit,
+        ExclusiveStartKey: this.decodeCursor(cursor),
+      }),
+    );
+
+    const items = result.Items ?? [];
+
+    return {
+      items: items.map(this.toDomain),
+      count: items.length,
+      nextCursor: this.encodeCursor(result.LastEvaluatedKey),
+    };
+    }catch(error){
+      console.log(error)
+      throw error
+    }
+  }
+
   async save(product: Product): Promise<string> {
     const primitives = product.toPrimitives();
 
@@ -77,18 +115,18 @@ export class ProductRepositoryImpl implements ProductRepository {
   }
 
   // ===========================================================================
-  // PRIVATE: SCAN METHODS
+  // PRIVATE SCAN METHODS (usan DynamoCursor)
   // ===========================================================================
 
   private async scanWithoutSearch(
     limit: number,
-    cursor?: DynamoCursor,
+    cursor?: Cursor,
   ): Promise<PaginatedResult<Product>> {
     const result = await this.docClient.send(
       new ScanCommand({
         TableName: this.tableName,
         Limit: limit,
-        ExclusiveStartKey: cursor,
+        ExclusiveStartKey: this.decodeCursor(cursor),
       }),
     );
 
@@ -104,12 +142,12 @@ export class ProductRepositoryImpl implements ProductRepository {
   private async scanWithSearch(
     search: string,
     limit: number,
-    cursor?: DynamoCursor,
+    cursor?: Cursor,
   ): Promise<PaginatedResult<Product>> {
     const result = await this.docClient.send(
       new ScanCommand({
         TableName: this.tableName,
-        ExclusiveStartKey: cursor,
+        ExclusiveStartKey: this.decodeCursor(cursor),
         FilterExpression: 'contains (#name, :s)',
         ExpressionAttributeNames: { '#name': 'name' },
         ExpressionAttributeValues: { ':s': search },
@@ -147,7 +185,11 @@ export class ProductRepositoryImpl implements ProductRepository {
     return Buffer.from(JSON.stringify(cursor)).toString('base64') as Cursor;
   }
 
-  private toDomain = (raw: Record<string, any>): Product => {
+  // ===========================================================================
+  // MAPPER
+  // ===========================================================================
+
+  private toDomain(raw: Record<string, any>): Product {
     return Product.fromPrimitives({
       productId: raw.productId,
       name: raw.name,
@@ -157,11 +199,12 @@ export class ProductRepositoryImpl implements ProductRepository {
       category: raw.category,
       sku: raw.sku,
       image: raw.image,
+      categoryId: raw.categoryId,
       ingredients: raw.ingredients,
       active: raw.active,
       createdAt: new Date(raw.createdAt),
       updatedAt: raw.updatedAt ? new Date(raw.updatedAt) : null,
       deletedAt: raw.deletedAt ? new Date(raw.deletedAt) : null,
     });
-  };
+  }
 }

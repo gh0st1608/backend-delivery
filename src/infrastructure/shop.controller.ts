@@ -9,7 +9,7 @@ import { CreateProductDto } from '../application/dto/request/create-product.dto'
 import { GetByParamsDto } from '../application/dto/request/get-by-params.dto';
 import { DomainSuccessMessages } from '../domain/constants/messages';
 import { HttpStatusResponse } from '../domain/constants/http-code';
-import { CreateCategoryUseCase } from '../application/create-product.application copy';
+import { CreateCategoryUseCase } from '../application/create-category.application';
 import { CreateCategoryDto } from '../application/dto/request/create-category.dto';
 import { Entities } from '../domain/types/shared';
 

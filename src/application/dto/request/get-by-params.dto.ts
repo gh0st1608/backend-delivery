@@ -14,5 +14,9 @@ export class GetByParamsDto {
 
   @IsOptional()
   @IsString()
-  cursor?: string; // base64 del ExclusiveStartKey
+  cursor?: string;
+
+  @IsOptional()
+  @IsString()
+  categoryId?: string;
 }
