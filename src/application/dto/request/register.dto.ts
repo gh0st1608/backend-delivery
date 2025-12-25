@@ -29,7 +29,7 @@ export class RegisterUserPayloadDto {
   @MaxLength(150, {
     message: 'El nombre completo no debe exceder 150 caracteres.',
   })
-  fullname: string;
+  name: string;
 }
 
 /**

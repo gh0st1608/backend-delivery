@@ -15,4 +15,5 @@ export class GetByParamsDto {
   @IsOptional()
   @IsString()
   userId?: string;
+
 }

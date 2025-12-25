@@ -18,9 +18,16 @@ import { PreferenceRepositoryImpl } from './infrastructure/repository/preference
 import { PreferenceRepositorySymbol } from './domain/repository/preference.repository';
 import { CreatePreferencesUseCase } from './application/create-preference.application';
 import { GetPreferencesUseCase } from './application/get-preference.application';
+import { GetUsersUseCase } from './application/get-users.application';
+import { GetUserByIdUseCase } from './application/get-user-by-id.application';
+import { GetMeUseCase } from './application/get-me.application';
+import { AccessTokenStrategy } from './infrastructure/access-token.strategy';
+import { AccessTokenGuard } from './infrastructure/access-token.guard';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
+    PassportModule.register({ defaultStrategy: 'access-token' }),
     ConfigModule.forRoot({
       envFilePath: `${process.env.NODE_ENV || ''}.env`,
       isGlobal: true,
@@ -28,6 +35,7 @@ import { GetPreferencesUseCase } from './application/get-preference.application'
   ],
   controllers: [AuthController],
   providers: [
+    AccessTokenStrategy,
     LoginUseCase,
     RegisterUseCase,
     VerifyEmailUseCase,
@@ -35,6 +43,9 @@ import { GetPreferencesUseCase } from './application/get-preference.application'
     SetPasswordUseCase,
     CreatePreferencesUseCase,
     GetPreferencesUseCase,
+    GetUsersUseCase,
+    GetUserByIdUseCase,
+    GetMeUseCase,
     {
       provide: UserRepositorySymbol,
       useClass: UserRepositoryImpl,

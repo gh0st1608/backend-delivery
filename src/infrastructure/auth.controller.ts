@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Get, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Query,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { LoginUseCase } from '../application/login.application';
 import { LoginDto } from '../application/dto/request/login.dto';
 import { RegisterDto } from '../application/dto/request/register.dto';
@@ -16,6 +24,12 @@ import { GetByParamsDto } from '../application/dto/request/get-by-params.dto';
 import { DomainSuccessMessages } from '../domain/constants/messages';
 import { Entities } from '../domain/types/shared';
 import { HttpStatusResponse } from '../domain/constants/http-code';
+import { GetUsersUseCase } from '../application/get-users.application';
+import { GetUserByIdUseCase } from '../application/get-user-by-id.application';
+import { GetMeUseCase } from '../application/get-me.application';
+import { AccessTokenGuard } from './access-token.guard';
+import { AuthenticatedUser } from '../domain/interfaces/security.interface';
+import { CurrentUser } from './current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +41,9 @@ export class AuthController {
     private readonly setPasswordUseCase: SetPasswordUseCase,
     private readonly createPreferenceUseCase: CreatePreferencesUseCase,
     private readonly getPreferencesUseCase: GetPreferencesUseCase,
+    private readonly getUsersUseCase: GetUsersUseCase,
+    private readonly getUserByIddUseCase: GetUserByIdUseCase,
+    private readonly getMeUseCase: GetMeUseCase,
   ) {}
 
   @Post('login')
@@ -54,10 +71,8 @@ export class AuthController {
     return this.setPasswordUseCase.execute(body);
   }
 
-  @Post('users/preferences')
-  async save(
-    @Body() body: CreatePreferenceDto,
-  ) {
+  @Post('preferences')
+  async save(@Body() body: CreatePreferenceDto) {
     const preferencesIds = await this.createPreferenceUseCase.execute(body);
     return this.ok(
       Entities.PREFERENCE,
@@ -66,16 +81,41 @@ export class AuthController {
     );
   }
 
-  @Get('users/preferences')
-  async get(@Query() query: GetByParamsDto) {
+  @Get('users')
+  async getUsers(@Query() query: GetByParamsDto) {
+    const users = await this.getUsersUseCase.execute(query);
+    return this.okPaginated(
+      users.items,
+      users.count,
+      users.nextCursor,
+      DomainSuccessMessages.GET_USERS_SUCESS,
+    );
+  }
+
+  @Get('users/:id')
+  async getById(@Param('id') id: string) {
+    const { user } = await this.getUserByIddUseCase.execute(id);
+
+    return this.ok(Entities.USER, user, DomainSuccessMessages.GET_USER_SUCESS);
+  }
+
+  @Get('preferences')
+  async getPreferences(@Query() query: GetByParamsDto) {
     const preferences = await this.getPreferencesUseCase.execute(query);
-     return this.okPaginated(
+    return this.okPaginated(
       preferences.items,
       preferences.count,
       preferences.nextCursor,
       DomainSuccessMessages.GET_PREFERENCES_SUCCESS,
     );
+  }
 
+  @UseGuards(AccessTokenGuard)
+  @Get('me')
+  async me(@CurrentUser() currentUser: AuthenticatedUser) {
+    const { userId } = currentUser;
+    const { user } = await this.getMeUseCase.execute(userId);
+    return this.ok(Entities.USER, user, DomainSuccessMessages.GET_USER_SUCESS);
   }
 
   private ok<T>(key: string, data: T, message: string) {

@@ -50,6 +50,10 @@ export interface CreatePreferenceResult {
   ids: string[];
 }
 
-export interface GetResult<T> {
-  product: T;
+export interface GetPreferenceResult<T> {
+  preference: T;
+}
+
+export interface GetUserResult<T> {
+  user: T;
 }

@@ -11,7 +11,9 @@ export enum DomainErrorMessages {
 }
 
 export enum InfraErrorMessages{
-  SAVE_FAILED = 'Error al guardar en dynamo'
+  SAVE_FAILED = 'Error al guardar item en dynamo',
+  UPDATE_FAILED = 'Error al actualizar item en dynamo',
+  GET_FAILED = 'Error al obtener item en dynamo'
 }
 
 export enum DomainSuccessMessages {
@@ -21,5 +23,8 @@ export enum DomainSuccessMessages {
   EMAIL_VERIFIED = 'Email Validado correctamente',
   SET_PASSWORD_SUCCESS = 'Contraseña actualizado correctamente',
   CREATE_PREFERENCE_SUCCESS = 'Preferencia creado con exito',
-  GET_PREFERENCES_SUCCESS = 'Preferencias obtenido con exito'
+  GET_PREFERENCES_SUCCESS = 'Preferencias obtenido con exito',
+  GET_USERS_SUCESS = 'Lista de usuarios obtenido con exito',
+  GET_USER_SUCESS = 'Usuario obtenido con exito',
+  CREATE_USER_SUCESS = 'Usuario creado con exito'
 }

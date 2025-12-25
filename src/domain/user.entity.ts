@@ -13,6 +13,7 @@ export interface UserOptional {
   readonly verificationCode: string;
   readonly verificationCodeExpiresAt: number;
   readonly photo: string;
+  readonly onboardingRequired: boolean;
   readonly active: boolean;
   readonly refreshToken: string;
   readonly createdAt: Date;
@@ -32,6 +33,7 @@ export type UserPropertiesUpdate = Partial<
       | 'photo'
       | 'active'
       | 'refreshToken'
+      | 'onboardingRequired'
       | 'updatedAt'
     >
 >;
@@ -45,6 +47,7 @@ export class User {
   private verificationCode: string;
   private verificationCodeExpiresAt: number;
   private photo: string;
+  private onboardingRequired: boolean;
   private roles: string;
   private active: boolean;
   private refreshToken: string;
@@ -54,6 +57,7 @@ export class User {
 
   constructor(properties: UserProperties) {
     this.active = true;
+    this.onboardingRequired = true; // 🔑 default seguro
     Object.assign(this, properties);
   }
 
@@ -64,17 +68,22 @@ export class User {
       lastname: this.lastname,
       email: this.email,
       password: this.password,
-      verificationCode: this.verificationCode,
-      verificationCodeExpiresAt: this.verificationCodeExpiresAt,
-      photo: this.photo,
       roles: this.roles,
+      photo: this.photo,
+      onboardingRequired: this.onboardingRequired,
       active: this.active,
       refreshToken: this.refreshToken,
+      verificationCode: this.verificationCode,
+      verificationCodeExpiresAt: this.verificationCodeExpiresAt,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       deletedAt: this.deletedAt,
     };
   }
+
+  // ======================================================
+  // FACTORY
+  // ======================================================
 
   static create(data: {
     name: string;
@@ -94,6 +103,7 @@ export class User {
       roles: data.roles,
       lastname: data.lastname ?? '',
       photo: data.photo ?? '',
+      onboardingRequired: true,
       active: true,
       refreshToken: '',
       createdAt: now,
@@ -102,8 +112,70 @@ export class User {
     });
   }
 
+  // ======================================================
+  // UPDATE (CONTROLADO)
+  // ======================================================
+
   update(properties: UserPropertiesUpdate): User {
-    this.active = true;
-    return Object.assign(this, properties);
+    return Object.assign(this, {
+      ...properties,
+      updatedAt: new Date(),
+    });
+  }
+
+  // ======================================================
+  // SERIALIZATION (DYNAMO)
+  // ======================================================
+
+  toPrimitives() {
+    return {
+      PK: `USER#${this.userId}`,
+      SK: 'METADATA',
+      GSI1PK: 'USER',
+      GSI1SK: `CREATED_AT#${this.createdAt.toISOString()}`,
+      userId: this.userId,
+      name: this.name,
+      lastname: this.lastname,
+      email: this.email,
+      password: this.password,
+      roles: this.roles,
+      photo: this.photo,
+      onboardingRequired: this.onboardingRequired,
+      active: this.active,
+      refreshToken: this.refreshToken,
+      verificationCode: this.verificationCode,
+      verificationCodeExpiresAt: this.verificationCodeExpiresAt,
+      createdAt: this.createdAt.toISOString(),
+      updatedAt: this.updatedAt?.toISOString() ?? null,
+      deletedAt: this.deletedAt?.toISOString() ?? null,
+    };
+  }
+
+  static fromPrimitives(item: Record<string, any>): User {
+    return new User({
+      userId: item.userId,
+      name: item.name,
+      lastname: item.lastname,
+      email: item.email,
+      password: item.password,
+      roles: item.roles,
+      photo: item.photo,
+      onboardingRequired: item.onboardingRequired ?? true,
+      active: item.active ?? true,
+      refreshToken: item.refreshToken,
+      verificationCode: item.verificationCode,
+      verificationCodeExpiresAt: item.verificationCodeExpiresAt,
+      createdAt: new Date(item.createdAt),
+      updatedAt: item.updatedAt ? new Date(item.updatedAt) : null,
+      deletedAt: item.deletedAt ? new Date(item.deletedAt) : null,
+    });
+  }
+
+  // ======================================================
+  // GETTERS ÚTILES
+  // ======================================================
+
+  hasPreferencesSelected(): boolean {
+    return this.onboardingRequired;
   }
 }

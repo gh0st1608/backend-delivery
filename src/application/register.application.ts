@@ -29,7 +29,7 @@ export class RegisterUseCase {
 
   async execute(registerDto: RegisterDto): Promise<AuthResponseDto> {
     try {
-      const { email, password, fullname } = registerDto.User;
+      const { email, password, name } = registerDto.User;
 
       const existingUser = await this.userRepository.findByEmail(email);
       if (existingUser) {
@@ -39,7 +39,7 @@ export class RegisterUseCase {
       const hashedPassword = await this.authService.hashPassword(password);
 
       const user = User.create({
-        name: fullname,
+        name,
         email,
         password: hashedPassword,
         roles: 'user',
