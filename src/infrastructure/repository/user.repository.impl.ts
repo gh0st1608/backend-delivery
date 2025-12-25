@@ -113,7 +113,6 @@ export class UserRepositoryImpl implements UserRepository {
   async save(user: User): Promise<string> {
     try {
       const primitives = user.toPrimitives();
-      console.log('primitives',primitives)
       await this.docClient.send(
         new PutCommand({
           TableName: this.tableName,
@@ -192,7 +191,7 @@ export class UserRepositoryImpl implements UserRepository {
       password: raw.password,
       roles: raw.roles,
       photo: raw.photo,
-      hasSelectedPreferences: raw.hasSelectedPreferences,
+      onboardingRequired: raw.onboardingRequired,
       active: raw.active,
       refreshToken: raw.refreshToken,
       verificationCode: raw.verificationCode,
