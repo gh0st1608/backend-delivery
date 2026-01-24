@@ -14,17 +14,17 @@ export class CheckoutController {
     private readonly clearCartUseCase: ClearCartUseCase,
   ) {}
 
-  @Post('cart/:userId/items')
+  @Post('carts/:userId/items')
   async addItem(@Param('userId') userId: string, @Body() body: ItemCartDto) {
     return this.createItemCartUseCase.execute(userId, body);
   }
 
-  @Get('cart/:userId')
+  @Get('carts/:userId')
   async getByUser(@Param('userId') userId: string) {
     return this.getCartUseCase.execute(userId);
   }
 
-  @Delete('cart/:userId/items/:productId')
+  @Delete('carts/:userId/items/:productId')
   async deleteItemByUser(
     @Param('userId') userId: string,
     @Param('productId') productId: string,
@@ -32,7 +32,7 @@ export class CheckoutController {
     return this.removeItemUseCase.execute(userId, productId);
   }
 
-  @Delete('cart/:userId')
+  @Delete('carts/:userId')
   async clearItemByUser(@Param('userId') userId: string) {
     return this.clearCartUseCase.execute(userId);
   }
