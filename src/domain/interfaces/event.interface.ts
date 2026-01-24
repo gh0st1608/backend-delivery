@@ -1,6 +1,7 @@
-export interface DomainEvent<T = any> {
-  readonly eventId: string;
-  readonly eventName: string;
-  readonly occurredOn: string; // ISO string for transport
-  readonly payload: T;
+export interface DomainEvent {
+  id: string;
+  type: string;         // PaymentApproved, PaymentFailed, etc
+  source: string;       // payment-service
+  occurredAt: Date;
+  payload: unknown;
 }

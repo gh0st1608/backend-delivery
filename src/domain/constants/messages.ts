@@ -2,6 +2,10 @@ export enum ServerErrorMessages {
   DYNAMO_DB_ERROR = 'Conexion a dynamoDb fallido.',
 }
 
+export enum InfraErrorMessages{
+  SERVER_WEBSOCKET_NOT_FOUND = 'Servidor socket no encontrado'
+}
+
 export enum DomainErrorMessages {
   INVALID_CREDENTIALS = 'Credenciales inválidas',
   ORDER_NOT_FOUND = 'Orden no encontrado',

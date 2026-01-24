@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
-import { CreateOrderUseCase } from '../../application/use-cases/create-order.application';
-import { GetOrderByIdUseCase } from '../../application/use-cases/get-order-by-id.application';
+import { CreateOrderUseCase } from '../../application/use-cases/create-order.usecase';
+import { GetOrderByIdUseCase } from '../../application/use-cases/get-order-by-id.usecase';
 import { CreateOrderDto } from '../../application/dto/request/create-order.dto';
 import { UpdateStatusDto } from '../../application/dto/request/update-order-status.dto';
-import { UpdateOrderStatusUseCase } from '../../application/use-cases/update-status.application';
+import { UpdateOrderStatusUseCase } from '../../application/use-cases/update-status.usecase';
 
 @Controller('order')
 export class OrderController {

@@ -1,13 +1,17 @@
 import { Module } from '@nestjs/common';
 import { OrderController } from './infrastructure/controllers/order.controller';
-import { CreateOrderUseCase } from './application/use-cases/create-order.application';
-import { GetOrderByIdUseCase } from './application/use-cases/get-order-by-id.application';
+import { CreateOrderUseCase } from './application/use-cases/create-order.usecase';
+import { GetOrderByIdUseCase } from './application/use-cases/get-order-by-id.usecase';
 import { OrderRepositorySymbol } from './domain/repository/order.repository';
 import { OrderRepositoryImpl } from './infrastructure/repository/order.repository.impl';
-import { OrderEventPublisherSymbol } from './domain/services/order-event.publisher';
-import { EventBridgeOrderEventPublisher } from './infrastructure/eventbridge/eventbridge-order-event.publisher';
+import { OrderEventPublisherSymbol } from './domain/services/event.publisher';
 import { ConfigModule } from '@nestjs/config';
-import { UpdateOrderStatusUseCase } from './application/use-cases/update-status.application';
+import { UpdateOrderStatusUseCase } from './application/use-cases/update-status.usecase';
+import { EventBridgeOrderEventPublisherImpl } from './infrastructure/eventbridge/eventbridge-order-event.publisher';
+import { UpdateOrderLocationUseCase } from './application/use-cases/update-order-location.usecase';
+import { SocketServerGatewaySymbol } from './domain/services/socket.server';
+import { SocketServerGatewayImpl } from './infrastructure/gateway/order.gateway.impl';
+import { OrderGateway } from './infrastructure/controllers/order.gateway';
 
 @Module({
   imports: [
@@ -21,14 +25,20 @@ import { UpdateOrderStatusUseCase } from './application/use-cases/update-status.
     CreateOrderUseCase,
     GetOrderByIdUseCase,
     UpdateOrderStatusUseCase,
+    UpdateOrderLocationUseCase,
+    OrderGateway,
     {
       provide: OrderRepositorySymbol,
       useClass: OrderRepositoryImpl,
     },
     {
       provide: OrderEventPublisherSymbol,
-      useClass: EventBridgeOrderEventPublisher,
+      useClass: EventBridgeOrderEventPublisherImpl,
     },
+    {
+      provide: SocketServerGatewaySymbol,
+      useClass: SocketServerGatewayImpl,
+    }
   ],
 })
 export class OrderModule {}

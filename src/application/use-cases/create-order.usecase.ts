@@ -10,8 +10,7 @@ import { SuccessResponseDto } from '../dto/response/response-custom.dto';
 import {
   OrderEventPublisherSymbol,
   OrderEventPublisher,
-} from '../../domain/services/order-event.publisher';
-import { buildDomainEvent } from '../builder-event';
+} from '../../domain/services/event.publisher';
 import { ORDER_EVENTS } from '../events/order.events';
 import { DomainSuccessMessages } from '../../domain/constants/messages';
 import { HttpStatusResponse } from '../../domain/constants/http-code';
@@ -33,11 +32,11 @@ export class CreateOrderUseCase {
       // persist
       const orderId = await this.orderRepository.save(order);
 
-      const ev = buildDomainEvent(ORDER_EVENTS.ORDER_CREATED, {
+      /* const ev = buildDomainEvent(ORDER_EVENTS.ORDER_CREATED, {
         userId,
       });
 
-      await this.orderEventPublisher.publishOrderCreated(ev);
+      await this.orderEventPublisher.publish(ev); */
 
       return {
         order: {

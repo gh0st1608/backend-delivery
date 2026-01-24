@@ -5,7 +5,7 @@ import {
   ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { HttpErrorFilter } from './infrastructure/helper-error.filter';
+import { HttpErrorFilter } from './infrastructure/httpexception.filter';
 import { TransformInterceptor } from './infrastructure/transformInterceptor';
 
 export async function setupApp(app: INestApplication): Promise<void> {
