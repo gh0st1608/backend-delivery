@@ -30,24 +30,17 @@ export class CreatePreferencesUseCase {
       ids.push(preferenceId);
     }
 
-    // 2️⃣ Cargar usuario
     const user = await this.userRepository.findById(userId);
+    
     if (!user) {
       throw new UserNotFoundException();
     }
 
-    // 3️⃣ Mutar estado de dominio
     user.update({
       onboardingRequired: false,
     });
 
-    // 4️⃣ Persistir
     await this.userRepository.save(user);
-
-    /* // 👇 Estado explícito del usuario
-    await this.userRepository.update(userId, {
-      hasSelectedPreferences: true,
-    }); */
 
     return { ids };
   }
