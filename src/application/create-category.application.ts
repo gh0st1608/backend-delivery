@@ -28,6 +28,7 @@ export class CreateCategoryUseCase {
       return {
         id: categoryId,
       };
+      
     } catch (error) {
       console.log(error);
     }
