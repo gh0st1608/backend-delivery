@@ -4,8 +4,8 @@ import {
   PutEventsCommand,
 } from '@aws-sdk/client-eventbridge';
 
-import { DomainEvent } from '../../domain/interfaces/event.interface';
-import { OrderEventPublisher } from '../../domain/services/event.publisher';
+import { DomainEvent } from '../../../domain/interfaces/event.interface';
+import { OrderEventPublisher } from '../../../domain/services/event.publisher';
 
 @Injectable()
 export class EventBridgeOrderEventPublisherImpl

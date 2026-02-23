@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { OrderModule } from './order.module';
+import { AppModule } from './app.module';
 import { setupApp } from './setup';
 
 import { createServer, proxy } from 'aws-serverless-express';
@@ -8,7 +8,7 @@ import { Handler } from 'aws-lambda';
 let cachedServer: any;
 
 async function bootstrapServer() {
-  const app = await NestFactory.create(OrderModule);
+  const app = await NestFactory.create(AppModule);
   await setupApp(app);
   await app.init();
 

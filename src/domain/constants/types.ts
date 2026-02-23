@@ -1,0 +1,1 @@
+export type Cursor = string & { readonly __brand: unique symbol };

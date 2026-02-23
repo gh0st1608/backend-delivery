@@ -6,47 +6,37 @@ import {
   OrderRepository,
   OrderRepositorySymbol,
 } from '../../domain/repository/order.repository';
-import { SuccessResponseDto } from '../dto/response/response-custom.dto';
+import { CreateOrUpdateOrderResult } from '../dto/response/response-custom.dto';
 import {
   OrderEventPublisherSymbol,
   OrderEventPublisher,
 } from '../../domain/services/event.publisher';
-import { ORDER_EVENTS } from '../events/order.events';
-import { DomainSuccessMessages } from '../../domain/constants/messages';
-import { HttpStatusResponse } from '../../domain/constants/http-code';
+import {
+  StoreLocationService,
+  StoreLocationServiceSymbol,
+} from '../../domain/services/store.repository';
 
 @Injectable()
 export class CreateOrderUseCase {
   constructor(
     @Inject(OrderRepositorySymbol)
     private readonly orderRepository: OrderRepository,
-    @Inject(OrderEventPublisherSymbol)
-    private readonly orderEventPublisher: OrderEventPublisher,
+    @Inject(StoreLocationServiceSymbol)
+    private readonly storeLocationService: StoreLocationService,
   ) {}
 
-  async execute(dto: CreateOrderDto): Promise<SuccessResponseDto> {
+  async execute(dto: CreateOrderDto): Promise<CreateOrUpdateOrderResult> {
     try {
-      const { userId, items } = dto.Order;
-      const order = Order.create(userId, items);
+      const { userId, storeId, items, deliveryLat, deliveryLng } = dto.Order;
+      const { pickupLat, pickupLng } = await this.storeLocationService.getLocation(storeId);
 
-      // persist
+      const order = Order.create(userId, pickupLat, pickupLng, deliveryLat, deliveryLng, items);
+
       const orderId = await this.orderRepository.save(order);
 
-      /* const ev = buildDomainEvent(ORDER_EVENTS.ORDER_CREATED, {
-        userId,
-      });
-
-      await this.orderEventPublisher.publish(ev); */
-
-      return {
-        order: {
-          orderId,
-        },
-        message: DomainSuccessMessages.CREATE_ORDER_SUCCESS,
-        statusCode: HttpStatusResponse.OK,
-      };
+      return { orderId };
     } catch (error) {
-      console.log(error)
+      console.log(error);
       throw error;
     }
   }

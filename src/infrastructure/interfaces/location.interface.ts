@@ -7,3 +7,11 @@ export interface CourierLocationPayload {
   accuracy?: number; // metros (GPS)
   ts: number;         // Date.now()
 }
+
+export interface LocationI {
+  lat: number;
+  lng: number;
+  heading?: number;
+  speed?: number;
+}
+

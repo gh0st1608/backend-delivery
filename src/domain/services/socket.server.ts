@@ -1,10 +1,8 @@
+import { CourierAssignedSocketEvent, CourierLocationSocketEvent } from "../interfaces/event-socket.interface";
+
 export interface SocketServerGateway {
-  emitLocation(
-    courierId: string,
-    orderId: string,
-    lat: number,
-    lng: number,
-  ): Promise<void>;
+  emitCourierLocation(payload : CourierLocationSocketEvent): Promise<void>;
+  emitCourierAssigned(payload: CourierAssignedSocketEvent): Promise<void>;
 }
 
 

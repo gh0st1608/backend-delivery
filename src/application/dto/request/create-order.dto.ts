@@ -1,5 +1,5 @@
 // src/application/dto/request/create-order.dto.ts
-import { IsArray, IsNotEmpty, IsString, ValidateNested, IsNumber, ArrayMinSize } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString, ValidateNested, IsNumber, ArrayMinSize, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class CreateOrderItemDto {
@@ -20,6 +20,18 @@ export class CreateOrderPayloadDto {
   @IsString()
   @IsNotEmpty()
   userId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  storeId: string;
+
+  @IsNumber()
+  @IsOptional()
+  deliveryLat: number;
+
+  @IsNumber()
+  @IsOptional()
+  deliveryLng: number;
 
   @IsArray()
   @ArrayMinSize(1)

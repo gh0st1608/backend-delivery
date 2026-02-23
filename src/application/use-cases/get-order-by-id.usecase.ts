@@ -1,9 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { OrderRepository, OrderRepositorySymbol } from '../../domain/repository/order.repository';
-import { OrderGetResponseDto } from '../dto/response/response-custom.dto';
+import { GetOrderResult } from '../dto/response/response-custom.dto';
 import { OrderNotFoundException } from '../exceptions/order-not-found.exception';
-import { HttpStatusResponse } from '../../domain/constants/http-code';
-import { DomainSuccessMessages } from '../../domain/constants/messages';
+import { Order } from '../../domain/order.entity';
 
 @Injectable()
 export class GetOrderByIdUseCase {
@@ -12,7 +11,7 @@ export class GetOrderByIdUseCase {
     private readonly orderRepository: OrderRepository,
   ) {}
 
-  async execute(id: string): Promise<OrderGetResponseDto> {
+  async execute(id: string): Promise<GetOrderResult<Order>> {
     const order = await this.orderRepository.getById(id);
 
     if (!order) {
@@ -21,8 +20,6 @@ export class GetOrderByIdUseCase {
 
     return {
       order,
-      statusCode: HttpStatusResponse.OK,
-      message: DomainSuccessMessages.GET_ORDER_SUCESS
     };
   }
 }

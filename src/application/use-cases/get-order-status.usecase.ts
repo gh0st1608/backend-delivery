@@ -11,52 +11,28 @@ import {
 import { OrderStatus } from '../../domain/order.entity';
 import { OrderNotFoundException } from '../exceptions/order-not-found.exception';
 import { StatusNotSupportedException } from '../exceptions/status-not-supported.exception';
-import { CreateOrUpdateOrderResult } from '../dto/response/response-custom.dto';
+import { CreateOrUpdateOrderResult, GetOrderStatusResult } from '../dto/response/response-custom.dto';
 
 @Injectable()
-export class UpdateOrderStatusUseCase {
+export class GetOrderStatusUseCase {
   constructor(
     @Inject(OrderRepositorySymbol)
     private readonly orderRepository: OrderRepository,
   ) {}
 
   async execute(
-    orderId: string,
-    newStatus: OrderStatus,
-  ): Promise<CreateOrUpdateOrderResult> {
+    orderId: string
+  ): Promise<GetOrderStatusResult> {
     try{
     const order = await this.orderRepository.getById(orderId);
     if (!order) throw new OrderNotFoundException();
 
-    switch (newStatus) {
-      case 'PAID':
-        order.markAsPaid();
-        break;
+    const orderEntity =  await this.orderRepository.getById(orderId);
 
-      case 'FAILED':
-        order.markAsFailed();
-        break;
-
-      case 'CANCELLED':
-        order.cancel();
-        break;
-
-      case 'SHIPPED':
-        order.ship();
-        break;
-
-      case 'DELIVERED':
-        order.deliver();
-        break;
-
-      default:
-        throw new StatusNotSupportedException();
-    }
-
-    await this.orderRepository.save(order);
+    const statusDelivery = orderEntity.toPrimitives().statusDelivery
 
     return {
-      orderId,
+      statusDelivery,
     };
     } catch(error){
       console.log(error)

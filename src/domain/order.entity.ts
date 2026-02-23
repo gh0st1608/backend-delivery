@@ -1,22 +1,29 @@
 import { v4 as uuidv4 } from 'uuid';
 
 // =======================================================
-// REQUIRED
+// REQUIRED (NO TOCADO)
 // =======================================================
 
 export interface OrderRequired {
   readonly userId: string;
+  readonly pickupLat: number;
+  readonly pickupLng: number;
+  readonly dropoffLat: number;
+  readonly dropoffLng: number;
   readonly items: OrderItemProps[];
   readonly totalAmount: number;
   readonly status: OrderStatus;
 }
 
 // =======================================================
-// OPTIONAL
+// OPTIONAL (NO TOCADO)
 // =======================================================
 
 export interface OrderOptional {
   readonly orderId: string;
+  readonly courierId: string | null;
+  readonly status: string;
+  readonly statusDelivery: string;
   readonly createdAt: Date;
   readonly updatedAt: Date | null;
   readonly deletedAt: Date | null;
@@ -24,17 +31,12 @@ export interface OrderOptional {
 
 export type OrderProperties = OrderRequired & Partial<OrderOptional>;
 
-// =======================================================
-// UPDATE PARTIALS
-// =======================================================
-
 export type OrderPropertiesUpdate = Partial<
-  Pick<OrderRequired, 'status'> &
-  Pick<OrderOptional, 'updatedAt' | 'deletedAt'>
+  Pick<OrderRequired, 'status'> & Pick<OrderOptional, 'updatedAt' | 'deletedAt'>
 >;
 
 // =======================================================
-// ORDER STATUS
+// STATUS
 // =======================================================
 
 export type OrderStatus =
@@ -45,6 +47,16 @@ export type OrderStatus =
   | 'SHIPPED'
   | 'DELIVERED';
 
+export type OrderDeliveryStatus =
+  | 'CREATED'
+  | 'ASSIGNED'
+  | 'PREPARING'
+  | 'PICKED_UP'
+  | 'ON_THE_WAY'
+  | 'DELIVERED'
+  | 'CANCELED';
+
+export type DeliveryPhase = 'TO_PICKUP' | 'TO_DROPOFF' | 'DELIVERED';
 // =======================================================
 // ORDER ITEM
 // =======================================================
@@ -68,7 +80,7 @@ export class OrderItem {
     return this.price * this.quantity;
   }
 
-  toJSON() {
+  toPrimitives(): OrderItemProps {
     return {
       productId: this.productId,
       name: this.name,
@@ -76,34 +88,52 @@ export class OrderItem {
       quantity: this.quantity,
     };
   }
+
+  static fromPrimitives(props: OrderItemProps): OrderItem {
+    return new OrderItem(
+      props.productId,
+      props.name,
+      props.price,
+      props.quantity,
+    );
+  }
 }
 
 // =======================================================
-// ORDER ROOT ENTITY
+// ORDER ENTITY
 // =======================================================
 
 export class Order {
   private readonly orderId: string;
   private readonly userId: string;
+  private courierId: string | null;
+  private readonly pickupLat: number;
+  private readonly pickupLng: number;
+  private readonly dropoffLat: number;
+  private readonly dropoffLng: number;
   private items: OrderItem[];
   private totalAmount: number;
   private status: OrderStatus;
+  private statusDelivery: OrderDeliveryStatus;
   private readonly createdAt: Date;
   private updatedAt: Date | null;
   private deletedAt: Date | null;
 
   constructor(properties: OrderProperties) {
-    Object.assign(this, properties);
-
-    // Normalize items
-    this.items = (properties.items ?? []).map(
-      i => new OrderItem(i.productId, i.name, i.price, i.quantity),
-    );
-
     this.orderId = properties.orderId ?? uuidv4();
     this.userId = properties.userId;
+    this.courierId = properties.courierId ?? null;
+    this.pickupLat = properties.pickupLat;
+    this.pickupLng = properties.pickupLng;
+    this.dropoffLat = properties.dropoffLat;
+    this.dropoffLng = properties.dropoffLng;
+
+    this.items = (properties.items ?? []).map(OrderItem.fromPrimitives);
+
     this.totalAmount = properties.totalAmount;
     this.status = properties.status;
+    this.statusDelivery = (properties.statusDelivery ??
+      'CREATED') as OrderDeliveryStatus;
 
     this.createdAt = properties.createdAt ?? new Date();
     this.updatedAt = properties.updatedAt ?? null;
@@ -114,26 +144,80 @@ export class Order {
   // FACTORY
   // =======================================================
 
-  static create(userId: string, items: OrderItemProps[]): Order {
-    const itemInstances = items.map(
-      i => new OrderItem(i.productId, i.name, i.price, i.quantity),
-    );
+  static create(
+    userId: string,
+    pickupLat: number,
+    pickupLng: number,
+    dropoffLat: number,
+    dropoffLng: number,
+    items: OrderItemProps[],
+  ): Order {
+    const itemInstances = items.map(OrderItem.fromPrimitives);
 
-    const total = itemInstances.reduce(
-      (sum, item) => sum + item.subtotal(),
-      0,
-    );
+    const total = itemInstances.reduce((sum, item) => sum + item.subtotal(), 0);
 
     return new Order({
-      orderId: uuidv4(),
       userId,
-      items: itemInstances,
+      pickupLat,
+      pickupLng,
+      dropoffLat,
+      dropoffLng,
+      items,
       totalAmount: total,
       status: 'PENDING',
+      statusDelivery: 'CREATED',
       createdAt: new Date(),
       updatedAt: null,
       deletedAt: null,
     });
+  }
+
+  // =======================================================
+  // FROM PRIMITIVES (RECONSTRUCCIÓN DESDE DB)
+  // =======================================================
+
+  static fromPrimitives(raw: any): Order {
+    return new Order({
+      orderId: raw.orderId,
+      userId: raw.userId,
+      courierId: raw.courierId,
+      pickupLat: raw.pickupLat,
+      pickupLng: raw.pickupLng,
+      dropoffLat: raw.dropoffLat,
+      dropoffLng: raw.dropoffLng,
+      items: raw.items,
+      totalAmount: raw.totalAmount,
+      status: raw.status,
+      statusDelivery: raw.statusDelivery,
+      createdAt: raw.createdAt ? new Date(raw.createdAt) : new Date(),
+      updatedAt: raw.updatedAt ? new Date(raw.updatedAt) : null,
+      deletedAt: raw.deletedAt ? new Date(raw.deletedAt) : null,
+    });
+  }
+
+  // =======================================================
+  // TO PRIMITIVES (PARA DYNAMO)
+  // =======================================================
+
+  toPrimitives() {
+    return {
+      GSI1PK: `ORDER`,
+      GSI1SK: this.createdAt.toISOString(),
+      orderId: this.orderId,
+      userId: this.userId,
+      courierId: this.courierId,
+      pickupLat: this.pickupLat,
+      pickupLng: this.pickupLng,
+      dropoffLat: this.dropoffLat,
+      dropoffLng: this.dropoffLng,
+      items: this.items.map((i) => i.toPrimitives()),
+      totalAmount: this.totalAmount,
+      status: this.status,
+      statusDelivery: this.statusDelivery,
+      createdAt: this.createdAt.toISOString(),
+      updatedAt: this.updatedAt?.toISOString() ?? null,
+      deletedAt: this.deletedAt?.toISOString() ?? null,
+    };
   }
 
   // =======================================================
@@ -162,44 +246,59 @@ export class Order {
 
   deliver() {
     this.status = 'DELIVERED';
+    this.statusDelivery = 'DELIVERED';
     this.touch();
   }
 
-  private touch() {
-    this.updatedAt = new Date();
+  assignCourier(courierId: string) {
+    this.courierId = courierId;
+    this.statusDelivery = 'ASSIGNED';
+    this.touch();
   }
 
   deactivate() {
     this.deletedAt = new Date();
   }
 
-  listItems() {
-    return this.items.map(i => i.toJSON());
+  update(props: OrderPropertiesUpdate) {
+    this.updatedAt = new Date();
+    Object.assign(this, props);
   }
 
-  getTotal() {
-    return this.totalAmount;
-  }
-
-  // =======================================================
-  // PROPERTIES SNAPSHOT
-  // =======================================================
-
-  properties(): Required<OrderProperties> {
+  getPickupLocation() {
     return {
-      orderId: this.orderId,
-      userId: this.userId,
-      items: this.items.map(i => i.toJSON()),
-      totalAmount: this.totalAmount,
-      status: this.status,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
-      deletedAt: this.deletedAt,
+      lat: this.pickupLat,
+      lng: this.pickupLng,
     };
   }
 
-  update(props: OrderPropertiesUpdate) {
+  getDropoffLocation() {
+    return {
+      lat: this.dropoffLat,
+      lng: this.dropoffLng,
+    };
+  }
+
+  getDeliveryStatus(): OrderDeliveryStatus {
+    return this.statusDelivery;
+  }
+
+  getCurrentPhase(): DeliveryPhase {
+    switch (this.statusDelivery) {
+      case 'ASSIGNED':
+      case 'PREPARING':
+        return 'TO_PICKUP';
+
+      case 'PICKED_UP':
+      case 'ON_THE_WAY':
+        return 'TO_DROPOFF';
+
+      default:
+        return 'DELIVERED';
+    }
+  }
+
+  private touch() {
     this.updatedAt = new Date();
-    return Object.assign(this, props);
   }
 }
