@@ -22,6 +22,10 @@ export class ProductPayloadDto {
   @IsNotEmpty({ message: 'La categoria del producto no puede estar vacio' })
   categoryId: string;
 
+  @IsString()
+  @IsNotEmpty({ message: 'La locacion del producto no puede estar vacio' })
+  storeId: string;
+
   @IsNumber()
   @IsNotEmpty({ message: 'El precio del producto no puede estar vacio' })
   price: number;

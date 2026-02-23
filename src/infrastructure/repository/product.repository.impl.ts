@@ -197,6 +197,7 @@ export class ProductRepositoryImpl implements ProductRepository {
       price: raw.price,
       stock: raw.stock,
       category: raw.category,
+      storeId: raw.storeId,
       sku: raw.sku,
       image: raw.image,
       categoryId: raw.categoryId,

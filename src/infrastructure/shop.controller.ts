@@ -80,6 +80,16 @@ export class ShopController {
     );
   }
 
+  @Get('stores/:id/location')
+  getStoreLocation(@Param('id') storeId: string) {
+    return {
+      Store : {
+        lat: -11.98108,
+        lng: -77.08323,
+      }
+    };
+  }
+
   // =======================
   // PRIVATE HELPERS
   // =======================

@@ -5,6 +5,7 @@ export interface ProductRequired {
   readonly name: string;
   readonly description: string;
   readonly categoryId: string;
+  readonly storeId: string;
   readonly price: number;
   readonly stock: number;
 }
@@ -38,6 +39,7 @@ export class Product {
   private price: number;
   private stock: number;
   private categoryId: string;
+  private storeId: string;
   private sku: string;
   private image: string;
   private ingredients: Ingredient[];
@@ -60,6 +62,7 @@ export class Product {
       price: this.price,
       stock: this.stock,
       categoryId: this.categoryId,
+      storeId: this.storeId,
       sku: this.sku,
       image: this.image,
       ingredients: this.ingredients,
@@ -76,6 +79,7 @@ export class Product {
     price: number;
     stock: number;
     categoryId: string;
+    storeId: string;
     sku?: string;
     image?: string;
     ingredients?: IngredientProperties[];
@@ -89,6 +93,7 @@ export class Product {
       price: data.price,
       stock: data.stock,
       categoryId: data.categoryId ?? '',
+      storeId: data.storeId,
       sku: data.sku ?? '',
       image: data.image ?? '',
       ingredients: (data.ingredients ?? []).map((i) => new Ingredient(i)),
@@ -148,6 +153,7 @@ export class Product {
       price: this.price,
       stock: this.stock,
       categoryId: this.categoryId,
+      storeId: this.storeId,
       sku: this.sku,
       image: this.image,
       active: this.active,
@@ -166,6 +172,7 @@ export class Product {
       price: raw.price,
       stock: raw.stock,
       categoryId: raw.categoryId,
+      storeId: raw.storeId,
       sku: raw.sku,
       image: raw.image,
       active: raw.active,
