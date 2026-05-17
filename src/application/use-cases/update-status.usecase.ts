@@ -1,20 +1,18 @@
 import {
   Inject,
   Injectable,
-  NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import {
   OrderRepository,
   OrderRepositorySymbol,
 } from '../../domain/repository/order.repository';
-import { OrderStatus } from '../../domain/order.entity';
+import { OrderDeliveryStatus } from '../../domain/order.entity';
 import { OrderNotFoundException } from '../exceptions/order-not-found.exception';
 import { StatusNotSupportedException } from '../exceptions/status-not-supported.exception';
 import { CreateOrUpdateOrderResult } from '../dto/response/response-custom.dto';
 
 @Injectable()
-export class UpdateOrderStatusUseCase {
+export class UpdateOrderStatusDeliveryUseCase {
   constructor(
     @Inject(OrderRepositorySymbol)
     private readonly orderRepository: OrderRepository,
@@ -22,31 +20,31 @@ export class UpdateOrderStatusUseCase {
 
   async execute(
     orderId: string,
-    newStatus: OrderStatus,
+    newStatus: OrderDeliveryStatus,
   ): Promise<CreateOrUpdateOrderResult> {
     try{
     const order = await this.orderRepository.getById(orderId);
     if (!order) throw new OrderNotFoundException();
 
     switch (newStatus) {
-      case 'PAID':
-        order.markAsPaid();
+      case 'ASSIGNED':
+        order.markAsAssigned();
         break;
 
-      case 'FAILED':
-        order.markAsFailed();
+      case 'PREPARING':
+        order.markAsPreparing();
         break;
 
-      case 'CANCELLED':
-        order.cancel();
+      case 'PICKED_UP':
+        order.markAsPickedUp();
         break;
 
-      case 'SHIPPED':
-        order.ship();
+      case 'ON_THE_WAY':
+        order.markAsOnTheWay();
         break;
-
+      
       case 'DELIVERED':
-        order.deliver();
+        order.markAsDelivered();
         break;
 
       default:

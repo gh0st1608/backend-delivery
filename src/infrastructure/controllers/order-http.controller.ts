@@ -11,7 +11,7 @@ import { CreateOrderUseCase } from '../../application/use-cases/create-order.use
 import { GetOrderByIdUseCase } from '../../application/use-cases/get-order-by-id.usecase';
 import { CreateOrderDto } from '../../application/dto/request/create-order.dto';
 import { UpdateStatusDto } from '../../application/dto/request/update-order-status.dto';
-import { UpdateOrderStatusUseCase } from '../../application/use-cases/update-status.usecase';
+import { UpdateOrderStatusDeliveryUseCase } from '../../application/use-cases/update-status.usecase';
 import { HttpStatusResponse } from '../../domain/constants/http-code';
 import { Entities } from '../../domain/constants/enums';
 import { DomainSuccessMessages } from '../../domain/constants/messages';
@@ -25,7 +25,7 @@ export class OrderController {
   constructor(
     private readonly createOrderUseCase: CreateOrderUseCase,
     private readonly getOrderByIdUseCase: GetOrderByIdUseCase,
-    private readonly updateOrderStatusUseCase: UpdateOrderStatusUseCase,
+    private readonly updateOrderStatusUseCase: UpdateOrderStatusDeliveryUseCase,
     private readonly assignCourierToOrderUseCase: AssignCourierToOrderUseCase,
     private readonly getOrderStatusUseCase: GetOrderStatusUseCase,
     private readonly getOrdersUseCase: GetOrdersUseCase,
@@ -67,8 +67,8 @@ export class OrderController {
     @Param('orderId') orderId: string,
     @Body() body: UpdateStatusDto,
   ) {
-    const { status } = body.Order;
-    return this.updateOrderStatusUseCase.execute(orderId, status);
+    const { statusDelivery } = body.Order;
+    return this.updateOrderStatusUseCase.execute(orderId, statusDelivery);
   }
 
   @Get(':orderId/status-delivery')

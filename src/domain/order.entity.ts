@@ -44,8 +44,6 @@ export type OrderStatus =
   | 'PAID'
   | 'FAILED'
   | 'CANCELLED'
-  | 'SHIPPED'
-  | 'DELIVERED';
 
 export type OrderDeliveryStatus =
   | 'CREATED'
@@ -223,30 +221,33 @@ export class Order {
   // =======================================================
   // BEHAVIOR
   // =======================================================
-
-  markAsPaid() {
+  markAsDelivered() {
     this.status = 'PAID';
-    this.touch();
-  }
-
-  markAsFailed() {
-    this.status = 'FAILED';
-    this.touch();
-  }
-
-  cancel() {
-    this.status = 'CANCELLED';
-    this.touch();
-  }
-
-  ship() {
-    this.status = 'SHIPPED';
-    this.touch();
-  }
-
-  deliver() {
-    this.status = 'DELIVERED';
     this.statusDelivery = 'DELIVERED';
+    this.touch();
+  }
+
+  markAsAssigned(){
+    this.status = 'PENDING'
+    this.statusDelivery = 'ASSIGNED';
+    this.touch();
+  }
+
+  markAsPreparing(){
+    this.status = 'PENDING'
+    this.statusDelivery = 'PREPARING';
+    this.touch();
+  }
+
+  markAsPickedUp(){
+    this.status = 'PENDING'
+    this.statusDelivery = 'PICKED_UP';
+    this.touch();
+  }
+
+  markAsOnTheWay(){
+    this.status = 'PENDING'
+    this.statusDelivery = 'ON_THE_WAY';
     this.touch();
   }
 

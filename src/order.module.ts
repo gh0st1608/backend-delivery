@@ -6,7 +6,7 @@ import { OrderRepositorySymbol } from './domain/repository/order.repository';
 import { OrderRepositoryImpl } from './infrastructure/persistence/dynamodb/order.repository.impl';
 import { OrderEventPublisherSymbol } from './domain/services/event.publisher';
 import { ConfigModule } from '@nestjs/config';
-import { UpdateOrderStatusUseCase } from './application/use-cases/update-status.usecase';
+import { UpdateOrderStatusDeliveryUseCase } from './application/use-cases/update-status.usecase';
 import { EventBridgeOrderEventPublisherImpl } from './infrastructure/messaging/eventbridge/eventbridge-order-event.publisher';
 import { StoreLocationServiceSymbol } from './domain/services/store.repository';
 import { ShopHttpClientImpl } from './infrastructure/clients/store-http.client';
@@ -33,7 +33,7 @@ import { GetOrdersUseCase } from './application/use-cases/get-orders.usecase';
   providers: [
     CreateOrderUseCase,
     GetOrderByIdUseCase,
-    UpdateOrderStatusUseCase,
+    UpdateOrderStatusDeliveryUseCase,
     AssignCourierToOrderUseCase,
     GetOrderStatusUseCase,
     GetOrdersUseCase,
