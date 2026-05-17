@@ -6,8 +6,15 @@ import {
   QueryCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+
 import { Cart } from '../../domain/entities/cart.entity';
 import { CartRepository } from '../../domain/repository/cart.repository';
+
+import { getAwsCredentials } from '../helpers/aws.helper';
+
+import { SaveFailedException } from '../exceptions/save-failed.exceptions';
+import { GetByUserFailedException } from '../exceptions/get-by-user-failed.exceptions';
+import { DeleteFailedException } from '../exceptions/delete-failed.exceptions';
 
 @Injectable()
 export class CartRepositoryImpl implements CartRepository {
@@ -15,65 +22,101 @@ export class CartRepositoryImpl implements CartRepository {
   private readonly tableName = process.env.CART_TABLE ?? 'Carts';
 
   constructor() {
-    const client = new DynamoDBClient({
-      region: process.env.REGION,
-      credentials: {
-        accessKeyId: process.env.ACCESS_KEY_ID!,
-        secretAccessKey: process.env.SECRET_ACCESS_KEY!,
-      },
-    });
-
-    this.docClient = DynamoDBDocumentClient.from(client);
+    this.docClient = DynamoDBDocumentClient.from(
+      new DynamoDBClient({
+        region: process.env.REGION ?? 'us-east-1',
+        credentials: getAwsCredentials(),
+      }),
+    );
   }
+
+  // ======================================================
+  // GET CART BY USER
+  // ======================================================
 
   async getByUserId(userId: string): Promise<Cart | null> {
-    const cart = await this.docClient.send(
-      new QueryCommand({
-        TableName: this.tableName,
-        IndexName: 'GSI_UserId',
-        KeyConditionExpression: 'userId = :u',
-        ExpressionAttributeValues: {
-          ':u': userId,
-        },
-        Limit: 1,
-      }),
-    );
-    const cartData = cart.Items?.[0];
-    if (!cartData) return null;
+    try {
+      const result = await this.docClient.send(
+        new QueryCommand({
+          TableName: this.tableName,
+          IndexName: 'GSI_UserId',
+          KeyConditionExpression: 'userId = :u',
+          ExpressionAttributeValues: {
+            ':u': userId,
+          },
+          Limit: 1,
+        }),
+      );
 
-    return new Cart({
-      cartId: cartData.cartId,
-      userId: cartData.userId,
-      items: cartData.items ?? [],
-      createdAt: new Date(cartData.createdAt),
-      updatedAt: new Date(cartData.updatedAt),
-    });
+      const cart = result.Items?.[0];
+      if (!cart) return null;
+
+      return this.toDomain(cart);
+    } catch (error) {
+      console.error(error);
+      throw new GetByUserFailedException();
+    }
   }
+
+  // ======================================================
+  // SAVE CART
+  // ======================================================
 
   async save(cart: Cart): Promise<string> {
-    const props = cart.properties();
+    try {
+      const primitives = cart.properties();
 
-    await this.docClient.send(
-      new PutCommand({
-        TableName: this.tableName,
-        Item: {
-          cartId: props.cartId,
-          userId: props.userId,
-          items: props.items,
-          createdAt: props.createdAt.toISOString(),
-        },
-      }),
-    );
+      await this.docClient.send(
+        new PutCommand({
+          TableName: this.tableName,
+          Item: {
+            cartId: primitives.cartId,
+            userId: primitives.userId,
+            items: primitives.items,
+            createdAt: primitives.createdAt.toISOString(),
+            updatedAt: primitives.updatedAt?.toISOString() ?? null,
+          },
+        }),
+      );
 
-    return props.cartId;
+      return primitives.cartId;
+    } catch (error) {
+      console.error(error);
+      throw new SaveFailedException();
+    }
   }
 
+  // ======================================================
+  // DELETE CART
+  // ======================================================
+
   async delete(userId: string): Promise<void> {
-    await this.docClient.send(
-      new DeleteCommand({
-        TableName: this.tableName,
-        Key: { userId },
-      }),
-    );
+    try {
+      await this.docClient.send(
+        new DeleteCommand({
+          TableName: this.tableName,
+          Key: {
+            userId,
+          },
+        }),
+      );
+    } catch (error) {
+      console.error(error);
+      throw new DeleteFailedException();
+    }
+  }
+
+  // ======================================================
+  // MAPPER
+  // ======================================================
+
+  private toDomain(raw: Record<string, any>): Cart {
+    return new Cart({
+      cartId: raw.cartId,
+      userId: raw.userId,
+      items: raw.items ?? [],
+      createdAt: new Date(raw.createdAt),
+      updatedAt: raw.updatedAt ? new Date(raw.updatedAt) : new Date(raw.createdAt),
+    });
   }
 }
