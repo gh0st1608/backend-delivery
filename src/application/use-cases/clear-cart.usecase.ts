@@ -22,15 +22,14 @@ export class ClearCartUseCase {
   async execute(userId: string) {
     try {
       const cart = await this.cartRepo.getByUserId(userId);
-      if (!cart) throw CartNotFoundException;
+      if (!cart) throw new CartNotFoundException;
 
       cart.clear();
 
       const cartId = await this.cartRepo.save(cart);
+      //const ev = buildDomainEvent(CART_EVENTS.CART_CLEARED, { userId });
 
-      const ev = buildDomainEvent(CART_EVENTS.CART_CLEARED, { userId });
-
-      await this.publisher.publishCartCleared(ev);
+      //await this.publisher.publishCartCleared(ev);
 
       return {
         cart: {
@@ -40,6 +39,7 @@ export class ClearCartUseCase {
         message: DomainSuccessMessages.CLEAR_ITEMS_CART_SUCCESS,
       };
     } catch (error) {
+      console.log(error)
       throw error;
     }
   }

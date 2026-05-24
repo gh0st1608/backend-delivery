@@ -8,7 +8,6 @@ export class HttpErrorFilter implements ExceptionFilter {
   async catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-
     const formatted = await HelperError.response(exception);
     const status = formatted.getStatus(); // es un número
     const body = formatted.getResponse(); // es el objeto que quieres devolver
