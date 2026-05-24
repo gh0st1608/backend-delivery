@@ -15,6 +15,8 @@ import { DomainSuccessMessages } from '../../domain/constants/messages';
 import { HttpStatusResponse } from '../../domain/constants/http-code';
 import { Entities } from '../../domain/constants/enums';
 import { GetCouriersUseCase } from '../../application/use-cases/get-couriers.usecase';
+import { UpdateCourierPresenceUseCase } from '../../application/use-cases/update-courier-presence.usecase';
+import { UpdateCourierPresenceDto } from '../../application/dto/request/update-courier-presence.dto';
 
 @Controller('courier')
 export class CourierController {
@@ -22,6 +24,7 @@ export class CourierController {
     private readonly getCouriersUseCase: GetCouriersUseCase,
     private readonly getCourierByIdUseCase: GetCourierByIdUseCase,
     private readonly createCourierUseCase: CreateCourierUseCase,
+    private readonly updateCourierPresenceUseCase: UpdateCourierPresenceUseCase,
   ) {}
 
   @Get(':courierId')
@@ -52,6 +55,23 @@ export class CourierController {
       users.count,
       users.nextCursor,
       DomainSuccessMessages.GET_COURIER_SUCESS,
+    );
+  }
+
+  @Patch(':courierId/presence')
+  async updatePresence(
+    @Param('courierId') courierId: string,
+    @Body() dto: UpdateCourierPresenceDto,
+  ) {
+    const courier = await this.updateCourierPresenceUseCase.execute(
+      courierId,
+      dto,
+    );
+
+    return this.ok(
+      Entities.COURIER,
+      courier,
+      DomainSuccessMessages.UPDATE_COURIER_SUCCESS,
     );
   }
 

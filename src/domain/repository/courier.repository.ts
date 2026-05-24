@@ -3,8 +3,9 @@ import { PaginatedResult } from '../../application/dto/response/response-custom.
 import { Courier } from '../../domain/courier.entity';
 
 export interface CourierRepository {
-  getById(id: string): Promise<Courier>;
+  getById(id: string): Promise<Courier | null>;
   getList(query: GetByParamsDto): Promise<PaginatedResult<Courier>>;
+  findAvailable(limit: number, maxLocationAgeSeconds: number): Promise<Courier[]>;
   save(courier: Courier): Promise<string>;
 }
 

@@ -15,8 +15,9 @@ export class ShopHttpClientImpl implements StoreLocationService {
       baseURL: process.env.SHOP_MS_BASE_URL ?? 'http://localhost:3002',
       timeout: 3000,
     });
+    console.log('SHOP_MS_BASE_URL',process.env.SHOP_MS_BASE_URL)
   }
-
+  
   async getLocation(storeId: string): Promise<StoreLocation> {
     try {
       const { data } = await this.client.get(

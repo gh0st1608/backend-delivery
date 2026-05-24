@@ -88,6 +88,40 @@ export class CourierRepositoryImpl implements CourierRepository {
     }
   }
 
+  async findAvailable(
+    limit: number,
+    maxLocationAgeSeconds: number,
+  ): Promise<Courier[]> {
+    const items: Courier[] = [];
+    let cursor: DynamoCursor | undefined;
+
+    do {
+      const result = await this.docClient.send(
+        new QueryCommand({
+          TableName: this.tableName,
+          IndexName: 'GSI_COURIER',
+          KeyConditionExpression: 'GSI1PK = :pk',
+          ExpressionAttributeValues: {
+            ':pk': 'COURIER',
+          },
+          ExclusiveStartKey: cursor,
+          ScanIndexForward: false,
+        }),
+      );
+
+      const batch = (result.Items ?? [])
+        .map(this.toDomain)
+        .filter((courier) =>
+          courier.isAvailableWithFreshLocation(maxLocationAgeSeconds),
+        );
+
+      items.push(...batch);
+      cursor = result.LastEvaluatedKey as DynamoCursor | undefined;
+    } while (cursor && items.length < limit);
+
+    return items.slice(0, limit);
+  }
+
   // ======================================================
   // SAVE
   // ======================================================
@@ -139,6 +173,7 @@ export class CourierRepositoryImpl implements CourierRepository {
       phone: raw.phone,
       vehicleType: raw.vehicleType,
       status: raw.status,
+      currentOrderId: raw.currentOrderId ?? null,
       currentLat: raw.currentLat ?? null,
       currentLng: raw.currentLng ?? null,
       lastLocationAt: raw.lastLocationAt ? new Date(raw.lastLocationAt) : null,

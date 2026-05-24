@@ -8,13 +8,10 @@ import {
 } from '../../domain/repository/order.repository';
 import { CreateOrUpdateOrderResult } from '../dto/response/response-custom.dto';
 import {
-  OrderEventPublisherSymbol,
-  OrderEventPublisher,
-} from '../../domain/services/event.publisher';
-import {
   StoreLocationService,
   StoreLocationServiceSymbol,
 } from '../../domain/services/store.repository';
+import { AutoAssignCourierUseCase } from './auto-assign-courier.usecase';
 
 @Injectable()
 export class CreateOrderUseCase {
@@ -23,6 +20,7 @@ export class CreateOrderUseCase {
     private readonly orderRepository: OrderRepository,
     @Inject(StoreLocationServiceSymbol)
     private readonly storeLocationService: StoreLocationService,
+    private readonly autoAssignCourierUseCase: AutoAssignCourierUseCase,
   ) {}
 
   async execute(dto: CreateOrderDto): Promise<CreateOrUpdateOrderResult> {
@@ -33,6 +31,7 @@ export class CreateOrderUseCase {
       const order = Order.create(userId, pickupLat, pickupLng, deliveryLat, deliveryLng, items);
 
       const orderId = await this.orderRepository.save(order);
+      await this.autoAssignCourierUseCase.execute(orderId);
 
       return { orderId };
     } catch (error) {

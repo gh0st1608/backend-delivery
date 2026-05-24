@@ -21,6 +21,7 @@ import { CourierRepositorySymbol } from './domain/repository/courier.repository'
 import { CourierRepositoryImpl } from './infrastructure/persistence/dynamodb/courier.repository.impl';
 import { GetOrderStatusUseCase } from './application/use-cases/get-order-status.usecase';
 import { GetOrdersUseCase } from './application/use-cases/get-orders.usecase';
+import { AutoAssignCourierUseCase } from './application/use-cases/auto-assign-courier.usecase';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { GetOrdersUseCase } from './application/use-cases/get-orders.usecase';
     GetOrderByIdUseCase,
     UpdateOrderStatusDeliveryUseCase,
     AssignCourierToOrderUseCase,
+    AutoAssignCourierUseCase,
     GetOrderStatusUseCase,
     GetOrdersUseCase,
     UpdateCourierLocationUseCase,

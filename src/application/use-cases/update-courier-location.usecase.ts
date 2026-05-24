@@ -17,6 +17,8 @@ import {
   OrderRepository,
   OrderRepositorySymbol,
 } from '../../domain/repository/order.repository';
+import { CourierNotFoundException } from '../exceptions/courier-not-found.exception';
+import { OrderNotFoundException } from '../exceptions/order-not-found.exception';
 
 @Injectable()
 export class UpdateCourierLocationUseCase {
@@ -40,6 +42,14 @@ export class UpdateCourierLocationUseCase {
     const order = await this.orderRepository.getById(orderId);
     const courier = await this.courierRepository.getById(courierId);
 
+    if (!order) {
+      throw new OrderNotFoundException();
+    }
+
+    if (!courier) {
+      throw new CourierNotFoundException();
+    }
+
     // 1️⃣ Actualizar ubicación del courier
     courier.updateLocation(location.lat, location.lng);
 
@@ -47,7 +57,7 @@ export class UpdateCourierLocationUseCase {
     const phase = order.getCurrentPhase();
 
     // 3️⃣ Determinar destino según fase (usando dominio)
-    let destination: { lat: number; lng: number };
+    let destination = order.getDropoffLocation();
 
     if (phase === 'TO_PICKUP') {
       destination = order.getPickupLocation();

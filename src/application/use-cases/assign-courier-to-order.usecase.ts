@@ -1,7 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { CourierRepository, CourierRepositorySymbol } from "../../domain/repository/courier.repository";
 import { OrderRepository, OrderRepositorySymbol } from "../../domain/repository/order.repository";
-import { EtaService, EtaServiceSymbol } from "../../domain/services/eta.service";
 import { SocketServerGateway, SocketServerGatewaySymbol } from "../../domain/services/socket.server";
 import { CourierNotFoundException } from "../exceptions/courier-not-found.exception";
 import { OrderNotFoundException } from "../exceptions/order-not-found.exception";
@@ -29,7 +28,7 @@ export class AssignCourierToOrderUseCase {
     if (!courier) throw new CourierNotFoundException();
 
     order.assignCourier(courierId);
-    courier.assignOrder();
+    courier.assignOrder(orderId);
 
     // 3️⃣ Persistencia
     await this.orderRepository.save(order);

@@ -17,6 +17,7 @@ export interface CourierRequired {
 
 export interface CourierOptional {
   readonly courierId: string;
+  readonly currentOrderId: string | null;
   readonly currentLat: number | null;
   readonly currentLng: number | null;
   readonly lastLocationAt: Date | null;
@@ -62,6 +63,7 @@ export class Courier {
   private readonly vehicleType: CourierVehicleType;
   private status: CourierStatus;
 
+  private currentOrderId: string | null;
   private currentLat: number | null;
   private currentLng: number | null;
   private lastLocationAt: Date | null;
@@ -79,6 +81,7 @@ export class Courier {
     this.vehicleType = properties.vehicleType;
     this.status = properties.status;
 
+    this.currentOrderId = properties.currentOrderId ?? null;
     this.currentLat = properties.currentLat ?? null;
     this.currentLng = properties.currentLng ?? null;
     this.lastLocationAt = properties.lastLocationAt ?? null;
@@ -103,6 +106,7 @@ export class Courier {
       phone,
       vehicleType,
       status: 'OFFLINE',
+      currentOrderId: null,
       createdAt: new Date(),
       updatedAt: null,
       deletedAt: null,
@@ -118,18 +122,21 @@ export class Courier {
     this.touch();
   }
 
-  assignOrder() {
+  assignOrder(orderId?: string) {
     this.status = 'BUSY';
+    this.currentOrderId = orderId ?? this.currentOrderId;
     this.touch();
   }
 
   release() {
     this.status = 'AVAILABLE';
+    this.currentOrderId = null;
     this.touch();
   }
 
   deactivate() {
     this.status = 'OFFLINE';
+    this.currentOrderId = null;
     this.touch();
   }
 
@@ -148,6 +155,21 @@ export class Courier {
     this.deletedAt = new Date();
   }
 
+  isAvailableWithFreshLocation(maxLocationAgeSeconds: number): boolean {
+    if (this.status !== 'AVAILABLE') {
+      return false;
+    }
+
+    if (this.currentLat === null || this.currentLng === null || !this.lastLocationAt) {
+      return false;
+    }
+
+    const maxAgeMs = maxLocationAgeSeconds * 1000;
+    const locationAgeMs = Date.now() - this.lastLocationAt.getTime();
+
+    return locationAgeMs <= maxAgeMs;
+  }
+
   // =======================================================
   // PROPERTIES SNAPSHOT
   // =======================================================
@@ -159,6 +181,7 @@ export class Courier {
       phone: this.phone,
       vehicleType: this.vehicleType,
       status: this.status,
+      currentOrderId: this.currentOrderId,
       currentLat: this.currentLat,
       currentLng: this.currentLng,
       lastLocationAt: this.lastLocationAt,
@@ -182,6 +205,7 @@ export class Courier {
       phone: this.phone,
       vehicleType: this.vehicleType,
       status: this.status,
+      currentOrderId: this.currentOrderId,
       currentLat: this.currentLat,
       currentLng: this.currentLng,
       lastLocationAt: this.lastLocationAt?.toISOString() ?? null,
@@ -198,9 +222,10 @@ export class Courier {
       phone: item.phone,
       vehicleType: item.vehicleType,
       status: item.status,
+      currentOrderId: item.currentOrderId ?? null,
       currentLat: item.currentLat,
       currentLng: item.currentLng,
-      lastLocationAt: item.lastLocationAt,
+      lastLocationAt: item.lastLocationAt ? new Date(item.lastLocationAt) : null,
       createdAt: new Date(item.createdAt),
       updatedAt: item.updatedAt ? new Date(item.updatedAt) : null,
       deletedAt: item.deletedAt ? new Date(item.deletedAt) : null,
