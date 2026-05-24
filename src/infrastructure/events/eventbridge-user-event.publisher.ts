@@ -5,11 +5,13 @@ import {
 } from '@aws-sdk/client-eventbridge';
 import { UserEventPublisher } from '../../domain/services/event.publisher';
 import { DomainEvent } from '../../domain/interfaces/event.interface';
+import { getAwsCredentials } from '../helpers/aws.helper';
 
 @Injectable()
 export class EventBridgeUserEventPublisher implements UserEventPublisher {
   private readonly client = new EventBridgeClient({
-    region: process.env.AWS_REGION,
+    region: process.env.REGION,
+    credentials: getAwsCredentials(),
   });
 
   private async publish(

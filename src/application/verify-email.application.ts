@@ -34,6 +34,7 @@ export class VerifyEmailUseCase {
       const { email } = verifyEmail.User;
 
       const user = await this.userRepository.findByEmail(email);
+      console.log('user',user)
       if (!user) {
         throw new EmailInvalidException();
       }
