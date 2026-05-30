@@ -1,12 +1,14 @@
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { fromIni } from '@aws-sdk/credential-providers';
+import { AwsCredentialIdentity } from '@aws-sdk/types';
 
 export const getAwsCredentials = ():
-  | AwsCredentialIdentityProvider
+  | AwsCredentialIdentity
   | undefined => {
 
   if (process.env.AWS_LOCAL === 'true') {
-    return fromIni({ profile: 'default' });
+    return {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    };
   }
 
   return undefined;
