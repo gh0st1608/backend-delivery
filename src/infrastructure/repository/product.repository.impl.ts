@@ -13,6 +13,7 @@ import { Cursor } from '../../domain/types/shared';
 import { PaginatedResult } from '../../application/dto/response/response-custom.dto';
 import { ProductRepository } from '../../domain/repository/product.repository';
 import { GetByParamsDto } from '../../application/dto/request/get-by-params.dto';
+import { getAwsCredentials } from '../helpers/aws.helper';
 
 export type DynamoCursor = Record<string, AttributeValue>;
 
@@ -25,10 +26,7 @@ export class ProductRepositoryImpl implements ProductRepository {
     this.docClient = DynamoDBDocumentClient.from(
       new DynamoDBClient({
         region: process.env.REGION ?? 'us-east-1',
-        credentials: {
-          accessKeyId: process.env.ACCESS_KEY_ID!,
-          secretAccessKey: process.env.SECRET_ACCESS_KEY!,
-        },
+        credentials: getAwsCredentials(),
       }),
       {
         marshallOptions: {

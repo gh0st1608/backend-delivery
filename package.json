@@ -26,6 +26,7 @@
     "@aws-sdk/client-eventbridge": "^3.600.0",
     "@aws-sdk/client-sns": "^3.856.0",
     "@aws-sdk/lib-dynamodb": "^3.848.0",
+    "@aws-sdk/credential-providers": "^3.969.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.3",
     "@nestjs/core": "^10.0.0",
