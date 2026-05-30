@@ -1,0 +1,96 @@
+version: "3.9"
+
+services:
+
+  gateway:
+    image: nginx:latest
+    container_name: api-gateway
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - auth
+      - shop
+      - checkout
+      - order
+      - payment
+    networks:
+      - backend
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok
+    command: http gateway:80
+    environment:
+      NGROK_AUTHTOKEN: "1WJTZKeFhe9jQq4zvhq08PPZy3Z_6v7QP5LyA6jBQ7t2A77VF"
+    ports:
+      - "4040:4040"
+    depends_on:
+      - gateway
+    networks:
+      - backend
+
+  auth:
+    build: 
+      context: ../backend-auth
+    container_name: backend-auth
+    env_file:
+      - ../backend-auth/.env
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+
+  shop:
+    build: 
+      context: ../backend-shop
+    container_name: backend-shop
+    env_file:
+      - ../backend-shop/.env
+    ports:
+      - "3002:3002"
+    networks:
+      - backend
+
+  checkout:
+    build: 
+      context: ../backend-checkout
+    container_name: backend-checkout
+    env_file:
+      - ../backend-checkout/.env
+    ports:
+      - "3003:3003"
+    volumes:
+      - ~/.aws:/root/.aws:ro
+    networks:
+      - backend
+
+  order:
+    build:
+      context: ../backend-order
+    container_name: backend-order
+    env_file:
+      - ../backend-order/.env
+    ports:
+      - "3004:3004"
+    volumes:
+      - ~/.aws:/root/.aws:ro
+    networks:
+      - backend
+
+  payment:
+    build:
+      context: ../backend-payment
+    container_name: backend-payment
+    env_file:
+      - ../backend-payment/.env
+    ports:
+      - "3005:3005"
+    volumes:
+      - ~/.aws:/root/.aws:ro
+    networks:
+      - backend
+networks:
+  backend:
+    driver: bridge
