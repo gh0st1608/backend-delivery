@@ -12,6 +12,7 @@ import { GetByParamsDto } from '../../application/dto/request/get-by-params.dto'
 import { PaginatedResult } from '../../application/dto/response/response-custom.dto';
 import { Cursor } from '../../domain/types/shared';
 import { SaveFailedException } from '../exceptions/save-failed.exceptions';
+import { getAwsCredentials } from '../helpers/aws.helper';
 
 export type DynamoCursor = Record<string, AttributeValue>;
 
@@ -23,11 +24,8 @@ export class PreferenceRepositoryImpl implements PreferenceRepository {
   constructor() {
     this.docClient = DynamoDBDocumentClient.from(
       new DynamoDBClient({
-        region: process.env.REGION ?? 'us-east-1',
-        credentials: {
-          accessKeyId: process.env.ACCESS_KEY_ID!,
-          secretAccessKey: process.env.SECRET_ACCESS_KEY!,
-        },
+        region: process.env.AWS_REGION ?? 'us-east-1',
+        credentials: getAwsCredentials(),
       }),
       {
         marshallOptions: {

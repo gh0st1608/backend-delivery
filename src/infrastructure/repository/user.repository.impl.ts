@@ -18,6 +18,7 @@ import { PaginatedResult } from '../../application/dto/response/response-custom.
 import { Cursor } from '../../domain/types/shared';
 import { DynamoCursor } from './preference.repository.impl';
 import { GetListFailedException } from '../exceptions/get-list-failed.exceptions';
+import { getAwsCredentials } from '../helpers/aws.helper';
 
 @Injectable()
 export class UserRepositoryImpl implements UserRepository {
@@ -27,11 +28,8 @@ export class UserRepositoryImpl implements UserRepository {
   constructor() {
     this.docClient = DynamoDBDocumentClient.from(
       new DynamoDBClient({
-        region: process.env.REGION ?? 'us-east-1',
-        credentials: {
-          accessKeyId: process.env.ACCESS_KEY_ID!,
-          secretAccessKey: process.env.SECRET_ACCESS_KEY!,
-        },
+        region: process.env.AWS_REGION ?? 'us-east-1',
+        credentials: getAwsCredentials(),
       }),
       {
         marshallOptions: {
