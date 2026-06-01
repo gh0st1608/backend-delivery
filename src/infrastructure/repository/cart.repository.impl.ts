@@ -24,7 +24,7 @@ export class CartRepositoryImpl implements CartRepository {
   constructor() {
     this.docClient = DynamoDBDocumentClient.from(
       new DynamoDBClient({
-        region: process.env.REGION ?? 'us-east-1',
+        region: process.env.AWS_REGION ?? 'us-east-1',
         credentials: getAwsCredentials(),
       }),
     );
