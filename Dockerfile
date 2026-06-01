@@ -28,8 +28,5 @@ RUN npm install --omit=dev
 # copiar solo el build compilado
 COPY --from=builder /app/.build ./.build
 
-# puerto del microservicio
-EXPOSE 3002
-
 # ejecutar aplicación
 CMD ["node", ".build/src/main"]
