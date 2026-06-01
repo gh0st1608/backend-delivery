@@ -61,8 +61,6 @@ services:
       - ../backend-checkout/.env
     ports:
       - "3003:3003"
-    volumes:
-      - ~/.aws:/root/.aws:ro
     networks:
       - backend
 
@@ -74,8 +72,6 @@ services:
       - ../backend-order/.env
     ports:
       - "3004:3004"
-    volumes:
-      - ~/.aws:/root/.aws:ro
     networks:
       - backend
 
@@ -87,8 +83,6 @@ services:
       - ../backend-payment/.env
     ports:
       - "3005:3005"
-    volumes:
-      - ~/.aws:/root/.aws:ro
     networks:
       - backend
 networks:
