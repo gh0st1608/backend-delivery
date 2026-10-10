@@ -5,6 +5,8 @@ import {
   IsNumber,
   ValidateNested,
   IsArray,
+  IsInt,
+  Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { IngredientDto } from './create-ingredient.dto';
@@ -26,8 +28,9 @@ export class ProductPayloadDto {
   @IsNotEmpty({ message: 'La locacion del producto no puede estar vacio' })
   storeId: string;
 
-  @IsNumber()
-  @IsNotEmpty({ message: 'El precio del producto no puede estar vacio' })
+  // Precio base en pesos chilenos (CLP no usa decimales)
+  @IsInt({ message: 'El precio debe ser un entero en CLP' })
+  @Min(1, { message: 'El precio debe ser mayor a 0' })
   price: number;
 
   @IsOptional()
