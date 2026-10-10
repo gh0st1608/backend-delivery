@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { HttpErrorFilter } from './infrastructure/helper-error.filter';
 import { TransformInterceptor } from './infrastructure/transformInterceptor';
+import { corsConfig } from './infrastructure/config/cors.config';
 
 export async function setupApp(app: INestApplication): Promise<void> {
   app.useGlobalPipes(
@@ -25,9 +26,5 @@ export async function setupApp(app: INestApplication): Promise<void> {
 
   app.useGlobalFilters(new HttpErrorFilter());
 
-  app.enableCors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  });
+  app.enableCors(corsConfig({ credentials: true }));
 }
