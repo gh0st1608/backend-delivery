@@ -164,17 +164,8 @@ export class PaymentRepositoryImpl implements PaymentRepository {
     return Buffer.from(JSON.stringify(cursor)).toString('base64') as Cursor;
   }
 
-  private toDomain = (raw: Record<string, any>): Payment => {
-    return Payment.fromPrimitives({
-      paymentId: raw.paymentId,
-      orderId: raw.orderId,
-      amount: raw.amount,
-      currency: raw.currency,
-      status: raw.status,
-      provider: raw.provider,
-      createdAt: new Date(raw.createdAt),
-      updatedAt: raw.updatedAt ? new Date(raw.updatedAt) : null,
-      deletedAt: raw.deletedAt ? new Date(raw.deletedAt) : null,
-    });
-  };
+  // Se reconstruye la entidad completa: si se omitieran campos como
+  // providerOrderId, al volver a guardar se rompería el índice por token.
+  private toDomain = (raw: Record<string, any>): Payment =>
+    Payment.fromPrimitives(raw);
 }
