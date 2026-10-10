@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 // =======================================================
-// REQUIRED (NO TOCADO)
+// REQUIRED
 // =======================================================
 
 export interface OrderRequired {
@@ -16,14 +16,24 @@ export interface OrderRequired {
 }
 
 // =======================================================
-// OPTIONAL (NO TOCADO)
+// OPTIONAL
 // =======================================================
 
 export interface OrderOptional {
   readonly orderId: string;
+  readonly storeId: string;
   readonly courierId: string | null;
   readonly status: string;
   readonly statusDelivery: string;
+  // Montos: CLP es la moneda que ve el cliente; USD es lo que cobra PayPal.
+  // El tipo de cambio queda congelado al crear la orden.
+  readonly currency: 'CLP';
+  readonly subtotalClp: number;
+  readonly deliveryFeeClp: number;
+  readonly totalClp: number;
+  readonly exchangeRateUsdClp: number;
+  readonly exchangeRateSource: string;
+  readonly totalUsd: number;
   readonly createdAt: Date;
   readonly updatedAt: Date | null;
   readonly deletedAt: Date | null;
@@ -55,10 +65,12 @@ export type OrderDeliveryStatus =
   | 'CANCELED';
 
 export type DeliveryPhase = 'TO_PICKUP' | 'TO_DROPOFF' | 'DELIVERED';
+
 // =======================================================
 // ORDER ITEM
 // =======================================================
 
+// price: precio unitario en CLP tomado del catálogo (no del cliente)
 export interface OrderItemProps {
   productId: string;
   name: string;
@@ -98,21 +110,42 @@ export class OrderItem {
 }
 
 // =======================================================
+// MONEY
+// =======================================================
+
+// CLP no tiene decimales; USD se redondea a centavos (mínimo 0.01)
+export const convertClpToUsd = (amountClp: number, usdClp: number): number =>
+  Math.max(0.01, Math.round((amountClp / usdClp) * 100) / 100);
+
+// =======================================================
 // ORDER ENTITY
 // =======================================================
 
 export class Order {
   private readonly orderId: string;
   private readonly userId: string;
+  private readonly storeId: string;
   private courierId: string | null;
+
   private readonly pickupLat: number;
   private readonly pickupLng: number;
   private readonly dropoffLat: number;
   private readonly dropoffLng: number;
+
   private items: OrderItem[];
+
   private totalAmount: number;
+  private currency: 'CLP';
+  private subtotalClp: number;
+  private deliveryFeeClp: number;
+  private totalClp: number;
+  private exchangeRateUsdClp: number;
+  private exchangeRateSource: string;
+  private totalUsd: number;
+
   private status: OrderStatus;
   private statusDelivery: OrderDeliveryStatus;
+
   private readonly createdAt: Date;
   private updatedAt: Date | null;
   private deletedAt: Date | null;
@@ -120,7 +153,9 @@ export class Order {
   constructor(properties: OrderProperties) {
     this.orderId = properties.orderId ?? uuidv4();
     this.userId = properties.userId;
+    this.storeId = properties.storeId ?? '';
     this.courierId = properties.courierId ?? null;
+
     this.pickupLat = properties.pickupLat;
     this.pickupLng = properties.pickupLng;
     this.dropoffLat = properties.dropoffLat;
@@ -129,6 +164,14 @@ export class Order {
     this.items = (properties.items ?? []).map(OrderItem.fromPrimitives);
 
     this.totalAmount = properties.totalAmount;
+    this.currency = 'CLP';
+    this.subtotalClp = properties.subtotalClp ?? properties.totalAmount;
+    this.deliveryFeeClp = properties.deliveryFeeClp ?? 0;
+    this.totalClp = properties.totalClp ?? properties.totalAmount;
+    this.exchangeRateUsdClp = properties.exchangeRateUsdClp ?? 0;
+    this.exchangeRateSource = properties.exchangeRateSource ?? '';
+    this.totalUsd = properties.totalUsd ?? 0;
+
     this.status = properties.status;
     this.statusDelivery = (properties.statusDelivery ??
       'CREATED') as OrderDeliveryStatus;
@@ -142,26 +185,41 @@ export class Order {
   // FACTORY
   // =======================================================
 
-  static create(
-    userId: string,
-    pickupLat: number,
-    pickupLng: number,
-    dropoffLat: number,
-    dropoffLng: number,
-    items: OrderItemProps[],
-  ): Order {
-    const itemInstances = items.map(OrderItem.fromPrimitives);
-
-    const total = itemInstances.reduce((sum, item) => sum + item.subtotal(), 0);
+  static create(data: {
+    userId: string;
+    storeId: string;
+    pickupLat: number;
+    pickupLng: number;
+    dropoffLat: number;
+    dropoffLng: number;
+    items: OrderItemProps[];
+    deliveryFeeClp: number;
+    exchangeRateUsdClp: number;
+    exchangeRateSource: string;
+  }): Order {
+    const itemInstances = data.items.map(OrderItem.fromPrimitives);
+    const subtotalClp = itemInstances.reduce(
+      (sum, item) => sum + item.subtotal(),
+      0,
+    );
+    const totalClp = subtotalClp + data.deliveryFeeClp;
 
     return new Order({
-      userId,
-      pickupLat,
-      pickupLng,
-      dropoffLat,
-      dropoffLng,
-      items,
-      totalAmount: total,
+      userId: data.userId,
+      storeId: data.storeId,
+      pickupLat: data.pickupLat,
+      pickupLng: data.pickupLng,
+      dropoffLat: data.dropoffLat,
+      dropoffLng: data.dropoffLng,
+      items: data.items,
+      totalAmount: totalClp,
+      currency: 'CLP',
+      subtotalClp,
+      deliveryFeeClp: data.deliveryFeeClp,
+      totalClp,
+      exchangeRateUsdClp: data.exchangeRateUsdClp,
+      exchangeRateSource: data.exchangeRateSource,
+      totalUsd: convertClpToUsd(totalClp, data.exchangeRateUsdClp),
       status: 'PENDING',
       statusDelivery: 'CREATED',
       createdAt: new Date(),
@@ -178,6 +236,7 @@ export class Order {
     return new Order({
       orderId: raw.orderId,
       userId: raw.userId,
+      storeId: raw.storeId,
       courierId: raw.courierId,
       pickupLat: raw.pickupLat,
       pickupLng: raw.pickupLng,
@@ -185,6 +244,12 @@ export class Order {
       dropoffLng: raw.dropoffLng,
       items: raw.items,
       totalAmount: raw.totalAmount,
+      subtotalClp: raw.subtotalClp,
+      deliveryFeeClp: raw.deliveryFeeClp,
+      totalClp: raw.totalClp,
+      exchangeRateUsdClp: raw.exchangeRateUsdClp,
+      exchangeRateSource: raw.exchangeRateSource,
+      totalUsd: raw.totalUsd,
       status: raw.status,
       statusDelivery: raw.statusDelivery,
       createdAt: raw.createdAt ? new Date(raw.createdAt) : new Date(),
@@ -201,17 +266,31 @@ export class Order {
     return {
       GSI1PK: `ORDER`,
       GSI1SK: this.createdAt.toISOString(),
+
       orderId: this.orderId,
       userId: this.userId,
+      storeId: this.storeId,
       courierId: this.courierId,
+
       pickupLat: this.pickupLat,
       pickupLng: this.pickupLng,
       dropoffLat: this.dropoffLat,
       dropoffLng: this.dropoffLng,
+
       items: this.items.map((i) => i.toPrimitives()),
+
       totalAmount: this.totalAmount,
+      currency: this.currency,
+      subtotalClp: this.subtotalClp,
+      deliveryFeeClp: this.deliveryFeeClp,
+      totalClp: this.totalClp,
+      exchangeRateUsdClp: this.exchangeRateUsdClp,
+      exchangeRateSource: this.exchangeRateSource,
+      totalUsd: this.totalUsd,
+
       status: this.status,
       statusDelivery: this.statusDelivery,
+
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt?.toISOString() ?? null,
       deletedAt: this.deletedAt?.toISOString() ?? null,
@@ -272,6 +351,10 @@ export class Order {
 
   isOwnedBy(userId: string): boolean {
     return this.userId === userId;
+  }
+
+  getTotalUsd(): number {
+    return this.totalUsd;
   }
 
   getPickupLocation() {

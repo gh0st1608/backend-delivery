@@ -11,6 +11,9 @@ export enum DomainErrorMessages {
   ORDER_NOT_FOUND = 'Orden no encontrado',
   COURIER_NOT_FOUND = 'Courier no encontrado',
   STATUS_NOT_SUPPORTED = 'Status no soportado',
+  PRODUCT_NOT_AVAILABLE = 'Uno de los productos ya no está disponible',
+  INSUFFICIENT_STOCK = 'No hay stock suficiente para uno de los productos',
+  MIXED_STORES = 'Todos los productos deben ser de la misma tienda',
 }
 
 export enum DomainSuccessMessages {
@@ -22,5 +25,6 @@ export enum DomainSuccessMessages {
   CREATE_COURIER_SUCESS = 'Courier creado con exito',
   GET_COURIER_SUCESS = 'Courier obtenido con exito',
   UPDATE_COURIER_SUCCESS = 'Courier actualizado con exito',
+  GET_PRICING_SUCCESS = 'Parámetros de precio obtenidos con exito',
   GET_ORDERS_SUCCESS = 'Ordenes obtenidas con exito',
 }

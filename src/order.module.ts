@@ -22,6 +22,12 @@ import { CourierRepositoryImpl } from './infrastructure/persistence/dynamodb/cou
 import { GetOrderStatusUseCase } from './application/use-cases/get-order-status.usecase';
 import { GetOrdersUseCase } from './application/use-cases/get-orders.usecase';
 import { AutoAssignCourierUseCase } from './application/use-cases/auto-assign-courier.usecase';
+import { GetPricingUseCase } from './application/use-cases/get-pricing.usecase';
+import { CatalogServiceSymbol } from './domain/services/catalog.service';
+import { ExchangeRateServiceSymbol } from './domain/services/exchange-rate.service';
+import { MindicadorExchangeRateService } from './infrastructure/services/mindicador-exchange-rate.service';
+import { SettingsRepositorySymbol } from './domain/repository/settings.repository';
+import { SettingsRepositoryImpl } from './infrastructure/persistence/dynamodb/settings.repository.impl';
 
 @Module({
   imports: [
@@ -40,7 +46,23 @@ import { AutoAssignCourierUseCase } from './application/use-cases/auto-assign-co
     GetOrderStatusUseCase,
     GetOrdersUseCase,
     UpdateCourierLocationUseCase,
+    GetPricingUseCase,
     OrderTrackingGateway,
+
+    // Un único cliente HTTP de shop expone ubicación y catálogo
+    ShopHttpClientImpl,
+    {
+      provide: CatalogServiceSymbol,
+      useExisting: ShopHttpClientImpl,
+    },
+    {
+      provide: SettingsRepositorySymbol,
+      useClass: SettingsRepositoryImpl,
+    },
+    {
+      provide: ExchangeRateServiceSymbol,
+      useClass: MindicadorExchangeRateService,
+    },
     {
       provide: OrderRepositorySymbol,
       useClass: OrderRepositoryImpl,
@@ -55,7 +77,7 @@ import { AutoAssignCourierUseCase } from './application/use-cases/auto-assign-co
     },
     {
       provide: StoreLocationServiceSymbol,
-      useClass: ShopHttpClientImpl,
+      useExisting: ShopHttpClientImpl,
     },
     {
       provide: SocketServerGatewaySymbol,

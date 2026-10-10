@@ -20,6 +20,7 @@ import { AssignCourierToOrderUseCase } from '../../application/use-cases/assign-
 import { GetOrderStatusUseCase } from '../../application/use-cases/get-order-status.usecase';
 import { GetByParamsDto } from '../../application/dto/request/get-by-params.dto';
 import { GetOrdersUseCase } from '../../application/use-cases/get-orders.usecase';
+import { GetPricingUseCase } from '../../application/use-cases/get-pricing.usecase';
 import { JwtAuthGuard } from '../security/jwt-auth.guard';
 import { InternalApiKeyGuard } from '../security/internal-api-key.guard';
 import { CurrentUser } from '../security/current-user.decorator';
@@ -34,6 +35,7 @@ export class OrderController {
     private readonly assignCourierToOrderUseCase: AssignCourierToOrderUseCase,
     private readonly getOrderStatusUseCase: GetOrderStatusUseCase,
     private readonly getOrdersUseCase: GetOrdersUseCase,
+    private readonly getPricingUseCase: GetPricingUseCase,
   ) {}
 
   // =======================
@@ -52,6 +54,14 @@ export class OrderController {
       order,
       DomainSuccessMessages.CREATE_ORDER_SUCCESS,
     );
+  }
+
+  // Tarifa de envío y tipo de cambio vigentes (para el resumen del carrito)
+  @UseGuards(JwtAuthGuard)
+  @Get('pricing')
+  async getPricing() {
+    const pricing = await this.getPricingUseCase.execute();
+    return this.ok('pricing', pricing, DomainSuccessMessages.GET_PRICING_SUCCESS);
   }
 
   @UseGuards(JwtAuthGuard)
