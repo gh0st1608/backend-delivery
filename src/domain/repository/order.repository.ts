@@ -10,6 +10,7 @@ export interface OrderRepository {
     userId: string,
     query: GetByParamsDto,
   ): Promise<PaginatedResult<Order>>;
+  findPendingAssignment(limit: number): Promise<Order[]>;
 }
 
 export const OrderRepositorySymbol = Symbol('OrderRepository');

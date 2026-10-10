@@ -23,11 +23,16 @@ import { GetOrderStatusUseCase } from './application/use-cases/get-order-status.
 import { GetOrdersUseCase } from './application/use-cases/get-orders.usecase';
 import { AutoAssignCourierUseCase } from './application/use-cases/auto-assign-courier.usecase';
 import { GetPricingUseCase } from './application/use-cases/get-pricing.usecase';
+import { HandlePaymentApprovedUseCase } from './application/use-cases/handle-payment-approved.usecase';
+import { RetryPendingAssignmentsUseCase } from './application/use-cases/retry-pending-assignments.usecase';
 import { CatalogServiceSymbol } from './domain/services/catalog.service';
 import { ExchangeRateServiceSymbol } from './domain/services/exchange-rate.service';
 import { MindicadorExchangeRateService } from './infrastructure/services/mindicador-exchange-rate.service';
 import { SettingsRepositorySymbol } from './domain/repository/settings.repository';
 import { SettingsRepositoryImpl } from './infrastructure/persistence/dynamodb/settings.repository.impl';
+import { PaymentEventsConsumer } from './infrastructure/messaging/sqs/payment-events.consumer';
+import { SqsPollerService } from './infrastructure/messaging/sqs/sqs-poller.service';
+import { AssignmentRetryScheduler } from './infrastructure/schedulers/assignment-retry.scheduler';
 
 @Module({
   imports: [
@@ -47,7 +52,14 @@ import { SettingsRepositoryImpl } from './infrastructure/persistence/dynamodb/se
     GetOrdersUseCase,
     UpdateCourierLocationUseCase,
     GetPricingUseCase,
+    HandlePaymentApprovedUseCase,
+    RetryPendingAssignmentsUseCase,
     OrderTrackingGateway,
+
+    // Eventos de pago y reintentos de asignación
+    PaymentEventsConsumer,
+    SqsPollerService,
+    AssignmentRetryScheduler,
 
     // Un único cliente HTTP de shop expone ubicación y catálogo
     ShopHttpClientImpl,

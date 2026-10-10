@@ -34,6 +34,10 @@ export interface OrderOptional {
   readonly exchangeRateUsdClp: number;
   readonly exchangeRateSource: string;
   readonly totalUsd: number;
+  readonly paymentId: string | null;
+  readonly paidAt: Date | null;
+  readonly assignmentAttempts: number;
+  readonly lastAssignmentAttemptAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date | null;
   readonly deletedAt: Date | null;
@@ -146,6 +150,12 @@ export class Order {
   private status: OrderStatus;
   private statusDelivery: OrderDeliveryStatus;
 
+  private paymentId: string | null;
+  private paidAt: Date | null;
+
+  private assignmentAttempts: number;
+  private lastAssignmentAttemptAt: Date | null;
+
   private readonly createdAt: Date;
   private updatedAt: Date | null;
   private deletedAt: Date | null;
@@ -175,6 +185,12 @@ export class Order {
     this.status = properties.status;
     this.statusDelivery = (properties.statusDelivery ??
       'CREATED') as OrderDeliveryStatus;
+
+    this.paymentId = properties.paymentId ?? null;
+    this.paidAt = properties.paidAt ?? null;
+
+    this.assignmentAttempts = properties.assignmentAttempts ?? 0;
+    this.lastAssignmentAttemptAt = properties.lastAssignmentAttemptAt ?? null;
 
     this.createdAt = properties.createdAt ?? new Date();
     this.updatedAt = properties.updatedAt ?? null;
@@ -252,6 +268,12 @@ export class Order {
       totalUsd: raw.totalUsd,
       status: raw.status,
       statusDelivery: raw.statusDelivery,
+      paymentId: raw.paymentId ?? null,
+      paidAt: raw.paidAt ? new Date(raw.paidAt) : null,
+      assignmentAttempts: raw.assignmentAttempts ?? 0,
+      lastAssignmentAttemptAt: raw.lastAssignmentAttemptAt
+        ? new Date(raw.lastAssignmentAttemptAt)
+        : null,
       createdAt: raw.createdAt ? new Date(raw.createdAt) : new Date(),
       updatedAt: raw.updatedAt ? new Date(raw.updatedAt) : null,
       deletedAt: raw.deletedAt ? new Date(raw.deletedAt) : null,
@@ -291,6 +313,13 @@ export class Order {
       status: this.status,
       statusDelivery: this.statusDelivery,
 
+      paymentId: this.paymentId,
+      paidAt: this.paidAt?.toISOString() ?? null,
+
+      assignmentAttempts: this.assignmentAttempts,
+      lastAssignmentAttemptAt:
+        this.lastAssignmentAttemptAt?.toISOString() ?? null,
+
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt?.toISOString() ?? null,
       deletedAt: this.deletedAt?.toISOString() ?? null,
@@ -300,6 +329,14 @@ export class Order {
   // =======================================================
   // BEHAVIOR
   // =======================================================
+
+  markAsPaid(paymentId: string) {
+    this.status = 'PAID';
+    this.paymentId = paymentId;
+    this.paidAt = new Date();
+    this.touch();
+  }
+
   markAsDelivered() {
     this.status = 'PAID';
     this.statusDelivery = 'DELIVERED';
@@ -307,25 +344,21 @@ export class Order {
   }
 
   markAsAssigned(){
-    this.status = 'PENDING'
     this.statusDelivery = 'ASSIGNED';
     this.touch();
   }
 
   markAsPreparing(){
-    this.status = 'PENDING'
     this.statusDelivery = 'PREPARING';
     this.touch();
   }
 
   markAsPickedUp(){
-    this.status = 'PENDING'
     this.statusDelivery = 'PICKED_UP';
     this.touch();
   }
 
   markAsOnTheWay(){
-    this.status = 'PENDING'
     this.statusDelivery = 'ON_THE_WAY';
     this.touch();
   }
@@ -333,6 +366,12 @@ export class Order {
   assignCourier(courierId: string) {
     this.courierId = courierId;
     this.statusDelivery = 'ASSIGNED';
+    this.touch();
+  }
+
+  registerAssignmentAttempt() {
+    this.assignmentAttempts += 1;
+    this.lastAssignmentAttemptAt = new Date();
     this.touch();
   }
 
@@ -351,6 +390,24 @@ export class Order {
 
   isOwnedBy(userId: string): boolean {
     return this.userId === userId;
+  }
+
+  isPaid(): boolean {
+    return this.status === 'PAID';
+  }
+
+  hasCourier(): boolean {
+    return !!this.courierId;
+  }
+
+  // Pagada, sin repartidor y aún dentro del máximo de intentos
+  needsCourierAssignment(maxAttempts: number): boolean {
+    return (
+      this.isPaid() &&
+      !this.hasCourier() &&
+      this.statusDelivery === 'CREATED' &&
+      this.assignmentAttempts < maxAttempts
+    );
   }
 
   getTotalUsd(): number {
@@ -377,6 +434,7 @@ export class Order {
 
   getCurrentPhase(): DeliveryPhase {
     switch (this.statusDelivery) {
+      case 'CREATED':
       case 'ASSIGNED':
       case 'PREPARING':
         return 'TO_PICKUP';

@@ -168,6 +168,40 @@ export class OrderRepositoryImpl implements OrderRepository {
   }
 
   // ======================================================
+  // PAGADAS SIN REPARTIDOR (reintentos de asignación)
+  // ======================================================
+
+  async findPendingAssignment(limit: number): Promise<Order[]> {
+    const orders: Order[] = [];
+    let cursor: DynamoCursor | undefined;
+
+    do {
+      const result = await this.docClient.send(
+        new QueryCommand({
+          TableName: this.tableName,
+          IndexName: 'GSI_ORDER',
+          KeyConditionExpression: 'GSI1PK = :pk',
+          FilterExpression: '#status = :paid AND statusDelivery = :created',
+          ExpressionAttributeNames: { '#status': 'status' },
+          ExpressionAttributeValues: {
+            ':pk': 'ORDER',
+            ':paid': 'PAID',
+            ':created': 'CREATED',
+          },
+          ExclusiveStartKey: cursor,
+          // Las más antiguas primero: llevan más tiempo esperando
+          ScanIndexForward: true,
+        }),
+      );
+
+      orders.push(...(result.Items ?? []).map((item) => this.toDomain(item)));
+      cursor = result.LastEvaluatedKey as DynamoCursor | undefined;
+    } while (cursor && orders.length < limit);
+
+    return orders.slice(0, limit);
+  }
+
+  // ======================================================
   // CURSOR HELPERS
   // ======================================================
 

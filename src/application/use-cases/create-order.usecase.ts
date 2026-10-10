@@ -24,7 +24,6 @@ import {
 } from '../../domain/repository/settings.repository';
 import { OrderValidationException } from '../exceptions/order-validation.exception';
 import { DomainErrorMessages } from '../../domain/constants/messages';
-import { AutoAssignCourierUseCase } from './auto-assign-courier.usecase';
 
 export interface CreateOrderResult {
   orderId: string;
@@ -36,6 +35,11 @@ export interface CreateOrderResult {
   totalUsd: number;
 }
 
+/**
+ * Crea la orden en estado PENDING (pendiente de pago).
+ * El repartidor NO se asigna aquí: se asigna cuando llega el evento
+ * PaymentApproved (ver HandlePaymentApprovedUseCase).
+ */
 @Injectable()
 export class CreateOrderUseCase {
   constructor(
@@ -49,7 +53,6 @@ export class CreateOrderUseCase {
     private readonly exchangeRateService: ExchangeRateService,
     @Inject(SettingsRepositorySymbol)
     private readonly settingsRepository: SettingsRepository,
-    private readonly autoAssignCourierUseCase: AutoAssignCourierUseCase,
   ) {}
 
   async execute(userId: string, dto: CreateOrderDto): Promise<CreateOrderResult> {
@@ -78,7 +81,6 @@ export class CreateOrderUseCase {
     });
 
     const orderId = await this.orderRepository.save(order);
-    await this.autoAssignCourierUseCase.execute(orderId);
     const totals = order.toPrimitives();
 
     return {
