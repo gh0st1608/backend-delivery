@@ -2,6 +2,7 @@ import { Tokens } from '../../../domain/interfaces/tokens.interface';
 import { Preference } from '../../../domain/preference.entity';
 import { Cursor } from '../../../domain/types/shared';
 import { User } from '../../../domain/user.entity';
+import { PublicUserDto } from './user-response.dto';
 
 export interface SuccessResponseDto {
   id: string;
@@ -42,7 +43,7 @@ export interface PaginatedResult<T> {
   nextCursor?: Cursor;
 }
 
-export type GetUsersResult = PaginatedResult<User>;
+export type GetUsersResult = PaginatedResult<PublicUserDto>;
 
 export type GetPreferencesResult = PaginatedResult<Preference>;
 

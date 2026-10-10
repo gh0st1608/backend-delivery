@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PreferenceRepositorySymbol } from '../domain/repository/preference.repository';
 import { GetByParamsDto } from './dto/request/get-by-params.dto';
 import { GetUsersResult } from './dto/response/response-custom.dto';
+import { toUserResponse } from './dto/response/user-response.dto';
 import {
   UserRepository,
   UserRepositorySymbol,
@@ -17,6 +17,6 @@ export class GetUsersUseCase {
   async execute(query: GetByParamsDto): Promise<GetUsersResult> {
     const { items, count, nextCursor } =
       await this.userRepository.getList(query);
-    return { items, count, nextCursor };
+    return { items: items.map(toUserResponse), count, nextCursor };
   }
 }

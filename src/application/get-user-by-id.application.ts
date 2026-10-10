@@ -3,7 +3,10 @@ import { UserRepository } from '../domain/repository/user.repository';
 import { UserRepositorySymbol } from '../domain/repository/user.repository';
 import { UserNotFoundException } from './exceptions/user-not-found.exception';
 import { GetUserResult } from './dto/response/response-custom.dto';
-import { User } from '../domain/user.entity';
+import {
+  PublicUserDto,
+  toUserResponse,
+} from './dto/response/user-response.dto';
 
 @Injectable()
 export class GetUserByIdUseCase {
@@ -12,7 +15,7 @@ export class GetUserByIdUseCase {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async execute(id: string): Promise<GetUserResult<User>> {
+  async execute(id: string): Promise<GetUserResult<PublicUserDto>> {
     try {
       const user = await this.userRepository.findById(id);
 
@@ -21,7 +24,7 @@ export class GetUserByIdUseCase {
       }
 
       return {
-        user,
+        user: toUserResponse(user),
       };
     } catch (error) {
       throw error;
