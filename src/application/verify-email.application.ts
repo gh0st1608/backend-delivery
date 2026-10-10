@@ -34,7 +34,6 @@ export class VerifyEmailUseCase {
       const { email } = verifyEmail.User;
 
       const user = await this.userRepository.findByEmail(email);
-      console.log('user',user)
       if (!user) {
         throw new EmailInvalidException();
       }
@@ -43,7 +42,8 @@ export class VerifyEmailUseCase {
       const code = this.authService.generateVerificationCode();
 
       // 2) Guardar código + TTL en DynamoDB
-      const ttl = Math.floor(Date.now() / 1000) + 4 * 60; // 4 minutos
+      // 10 minutos: cubre verificar el código y definir la nueva contraseña
+      const ttl = Math.floor(Date.now() / 1000) + 10 * 60;
 
       const userUpdate = user.update({
         verificationCode: code,
@@ -68,7 +68,8 @@ export class VerifyEmailUseCase {
         message: 'Código enviado correctamente',
       };
     } catch (error) {
-      console.log('error', error);
+      console.error('❌ Error en VerifyEmailUseCase.execute():', error);
+      throw error;
     }
   }
 }

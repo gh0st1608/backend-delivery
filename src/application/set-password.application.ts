@@ -4,10 +4,10 @@ import { AuthService } from '../domain/services/auth.service';
 import { VerifiedEmailResponseDto } from './dto/response/response-custom.dto';
 import { UserRepositorySymbol } from '../domain/repository/user.repository';
 import { AuthServiceSymbol } from '../domain/services/auth.service';
-import { UserAlreadyExistsException } from './exceptions/user-exists.exception';
 import { HttpStatusResponse } from '../domain/constants/http-code';
 import { DomainSuccessMessages } from '../domain/constants/messages';
 import { SetPasswordDto } from './dto/request/set-password.dto';
+import { VerifyCodeUseCase } from './verify-code.application';
 
 @Injectable()
 export class SetPasswordUseCase {
@@ -17,18 +17,24 @@ export class SetPasswordUseCase {
 
     @Inject(AuthServiceSymbol)
     private readonly authService: AuthService,
+
+    private readonly verifyCodeUseCase: VerifyCodeUseCase,
   ) {}
 
   async execute(setPasswordDto: SetPasswordDto): Promise<VerifiedEmailResponseDto> {
     try {
-      const { email, password } = setPasswordDto.User;
+      const { email, password, code } = setPasswordDto.User;
 
-      const userFound = await this.userRepository.findByEmail(email);
+      // Solo quien recibió el código por correo puede cambiar la contraseña
+      const userFound = await this.verifyCodeUseCase.validate(email, code);
 
       const hashedNewPassword = await this.authService.hashPassword(password);
 
+      // Se invalida el código para que no pueda reutilizarse
       const userUpdated = userFound.update({
-        password: hashedNewPassword
+        password: hashedNewPassword,
+        verificationCode: '',
+        verificationCodeExpiresAt: 0,
       });
 
       await this.userRepository.save(userUpdated);

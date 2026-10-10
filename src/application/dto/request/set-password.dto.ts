@@ -5,6 +5,7 @@ import {
   MinLength,
   MaxLength,
   IsEmail,
+  Length,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
@@ -23,6 +24,10 @@ export class SetPasswordPayloadDto {
   @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres.' })
   @MaxLength(128, { message: 'La contraseña no debe exceder 128 caracteres.' })
   password: string;
+
+  @IsString({ message: 'El codigo ingresado debe ser una cadena' })
+  @Length(4, 4, { message: 'El codigo ingresado debe ser de 4 digitos' })
+  code: string;
 }
 
 /**
