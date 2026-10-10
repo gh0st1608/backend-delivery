@@ -24,6 +24,11 @@ import { GetMeUseCase } from './application/get-me.application';
 import { AccessTokenStrategy } from './infrastructure/access-token.strategy';
 import { AccessTokenGuard } from './infrastructure/access-token.guard';
 import { PassportModule } from '@nestjs/passport';
+import { IssueTokensUseCase } from './application/issue-tokens.application';
+import { RefreshSessionUseCase } from './application/refresh-session.application';
+import { LogoutUseCase } from './application/logout.application';
+import { RefreshTokenRepositorySymbol } from './domain/repository/refresh-token.repository';
+import { RefreshTokenRepositoryImpl } from './infrastructure/repository/refresh-token.repository.impl';
 
 @Module({
   imports: [
@@ -46,6 +51,13 @@ import { PassportModule } from '@nestjs/passport';
     GetUsersUseCase,
     GetUserByIdUseCase,
     GetMeUseCase,
+    IssueTokensUseCase,
+    RefreshSessionUseCase,
+    LogoutUseCase,
+    {
+      provide: RefreshTokenRepositorySymbol,
+      useClass: RefreshTokenRepositoryImpl,
+    },
     {
       provide: UserRepositorySymbol,
       useClass: UserRepositoryImpl,

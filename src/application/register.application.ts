@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { IssueTokensUseCase } from './issue-tokens.application';
 import { UserRepository } from '../domain/repository/user.repository';
 import { AuthService } from '../domain/services/auth.service';
 import { RegisterDto } from '../application/dto/request/register.dto';
@@ -22,6 +23,7 @@ export class RegisterUseCase {
 
     @Inject(AuthServiceSymbol)
     private readonly authService: AuthService,
+    private readonly issueTokensUseCase: IssueTokensUseCase,
 
     @Inject(UserEventPublisherSymbol)
     private readonly eventPublisher: UserEventPublisher,
@@ -56,13 +58,14 @@ export class RegisterUseCase {
         },
       });
 
-      const accessToken = this.authService.generateAccessToken(user);
-      const refreshToken = this.authService.generateRefreshToken(user);
+      const { accessToken, refreshToken, expiresIn } =
+        await this.issueTokensUseCase.execute(user);
 
       return {
         Auth: {
           accessToken,
           refreshToken,
+          expiresIn,
         },
         statusCode: HttpStatusResponse.CREATED,
         message: DomainSuccessMessages.REGISTER_SUCCESS,

@@ -1,11 +1,11 @@
 // src/infrastructure/adapters/auth.service.impl.ts
-
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
-import { randomInt } from 'crypto';
+import { createHash, randomBytes, randomInt, randomUUID } from 'crypto';
 import { AuthService } from '../../domain/services/auth.service';
 import { User } from '../../domain/user.entity';
+import { JWT_ALGORITHM, jwtConfig } from '../config/jwt.config';
 
 @Injectable()
 export class AuthServiceImpl implements AuthService {
@@ -24,23 +24,27 @@ export class AuthServiceImpl implements AuthService {
     return bcrypt.hash(password, this.saltRounds);
   }
 
+  // Access token de vida corta. Solo lleva el identificador opaco (sub):
+  // el payload de un JWT es legible, así que no se incluyen datos personales.
   generateAccessToken(user: User): string {
-    return jwt.sign(
-      {
-        sub: user.properties().userId,
-        name: user.properties().name,
-        /* roles: user.getRoles(), */
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '15m' },
-    );
+    const { privateKey, issuer, audience, accessTokenTtlSeconds } = jwtConfig();
+
+    return jwt.sign({}, privateKey, {
+      algorithm: JWT_ALGORITHM,
+      subject: user.properties().userId,
+      issuer,
+      audience,
+      expiresIn: accessTokenTtlSeconds,
+      jwtid: randomUUID(),
+    });
   }
 
-  generateRefreshToken(user: User): string {
-    return jwt.sign(
-      { sub: user.properties().userId },
-      process.env.JWT_REFRESH_SECRET,
-      { expiresIn: '7d' },
-    );
+  // 256 bits de entropía, opaco: no se puede validar ni decodificar sin el servidor
+  generateRefreshToken(): string {
+    return randomBytes(32).toString('base64url');
+  }
+
+  hashToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
   }
 }

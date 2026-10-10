@@ -1,6 +1,7 @@
 // src/application/use-cases/login.use-case.ts
 
 import { Inject, Injectable } from '@nestjs/common';
+import { IssueTokensUseCase } from './issue-tokens.application';
 import { UserRepository } from '../domain/repository/user.repository';
 import { AuthService } from '../../src/domain/services/auth.service';
 import { LoginDto } from '../../src/application/dto/request/login.dto';
@@ -19,6 +20,7 @@ export class LoginUseCase {
 
     @Inject(AuthServiceSymbol)
     private readonly authService: AuthService,
+    private readonly issueTokensUseCase: IssueTokensUseCase,
   ) {}
 
   async execute(authLogin: LoginDto): Promise<AuthResponseDto> {
@@ -37,13 +39,14 @@ export class LoginUseCase {
       throw new LoginFailedException();
     }
 
-    const accessToken = this.authService.generateAccessToken(user);
-    const refreshToken = this.authService.generateRefreshToken(user);
+    const { accessToken, refreshToken, expiresIn } =
+      await this.issueTokensUseCase.execute(user);
 
     return {
       Auth: {
         accessToken,
         refreshToken,
+        expiresIn,
       },
       statusCode: HttpStatusResponse.OK,
       message: DomainSuccessMessages.LOGIN_SUCESS,

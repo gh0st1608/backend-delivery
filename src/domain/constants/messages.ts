@@ -8,6 +8,7 @@ export enum DomainErrorMessages {
   EXPIRED_VERIFICATION_CODE = 'El código ha expirado',
   INVALID_VERIFICATION_CODE = 'El código ingresado es incorrecto',
   NOT_EXIST_VERIFICATION_CODE = 'No existe ningún código activo para este usuario',
+  INVALID_REFRESH_TOKEN = 'La sesión no es válida o expiró. Inicia sesión nuevamente.',
 }
 
 export enum InfraErrorMessages{
@@ -26,5 +27,7 @@ export enum DomainSuccessMessages {
   GET_PREFERENCES_SUCCESS = 'Preferencias obtenido con exito',
   GET_USERS_SUCESS = 'Lista de usuarios obtenido con exito',
   GET_USER_SUCESS = 'Usuario obtenido con exito',
-  CREATE_USER_SUCESS = 'Usuario creado con exito'
+  CREATE_USER_SUCESS = 'Usuario creado con exito',
+  REFRESH_TOKEN_SUCCESS = 'Sesión renovada',
+  LOGOUT_SUCCESS = 'Sesión cerrada'
 }
