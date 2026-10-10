@@ -1,2 +1,11 @@
-infra/terraform.tfvars
-infra/.terraform
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+**/.build/
+
+# dev: .env generados a partir de LocalStack
+environments/dev/generated/
