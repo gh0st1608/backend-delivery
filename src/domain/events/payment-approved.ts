@@ -1,5 +1,8 @@
+import { randomUUID } from 'crypto';
 import { DomainEvent } from '../interfaces/event.interface';
 
+// Lo consume backend-order (EventBridge → SQS) para marcar la orden como
+// pagada y disparar la asignación del repartidor.
 export class PaymentApprovedEvent implements DomainEvent {
   readonly id: string;
   readonly type = 'PaymentApproved';
@@ -10,10 +13,12 @@ export class PaymentApprovedEvent implements DomainEvent {
     public readonly payload: {
       paymentId: string;
       orderId: string;
-      provider: 'PAYPAL' | 'STRIPE';
-      amount: number;
+      userId: string;
+      provider: string;
+      amountUsd: number;
+      amountClp: number;
     },
   ) {
-    this.id = crypto.randomUUID();
+    this.id = randomUUID();
   }
 }

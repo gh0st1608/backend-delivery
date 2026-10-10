@@ -1,4 +1,5 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
+import { PaymentApprovedEvent } from '../../domain/events/payment-approved';
 import {
   PaymentRepository,
   PaymentRepositorySymbol,
@@ -18,6 +19,8 @@ import { PaymentNotCompleteException } from '../exceptions/payment-not-complete.
 
 @Injectable()
 export class ConfirmPaymentUseCase {
+  private readonly logger = new Logger(ConfirmPaymentUseCase.name);
+
   constructor(
     @Inject(PaymentRepositorySymbol)
     private readonly paymentRepository: PaymentRepository,
@@ -40,6 +43,21 @@ export class ConfirmPaymentUseCase {
     // Solo quien inició el pago puede confirmarlo
     if (!payment || !payment.belongsTo(userId)) {
       throw new PaymentNotFoundException();
+    }
+
+    // Idempotencia: si ya fue capturado (reintento, recarga de la pantalla
+    // de éxito), PayPal rechazaría una segunda captura.
+    if (payment.isApproved()) {
+      const { orderId, paymentId, providerPaymentId } = payment.properties();
+      // Se reemite el evento: si la primera publicación falló, así se recupera.
+      // order lo procesa de forma idempotente.
+      await this.publishApproved(payment);
+      return {
+        orderId,
+        paymentId,
+        providerPaymentId,
+        providerPaymentStatus: 'COMPLETED',
+      };
     }
 
     // 2️⃣ Capturar pago en PayPal
@@ -65,16 +83,8 @@ export class ConfirmPaymentUseCase {
     // 4️⃣ Persistir
     await this.paymentRepository.save(payment);
 
-    // 5️⃣ Emitir evento (opcional pero correcto)
-    /*
-    await this.eventPublisher.publish(
-      new PaymentConfirmedEvent(
-        payment.properties().paymentId,
-        payment.properties().orderId,
-        provider,
-      ),
-    );
-    */
+    // 5️⃣ Avisar a order para marcar la orden pagada y asignar repartidor
+    await this.publishApproved(payment);
 
     return {
       orderId: providerReferenceOrderId,
@@ -82,5 +92,35 @@ export class ConfirmPaymentUseCase {
       providerPaymentId,
       providerPaymentStatus,
     };
+  }
+
+  // El pago ya está capturado: un fallo al publicar no debe responder error al
+  // cliente. Se reintenta y, si persiste, queda registrado para reconciliar.
+  private async publishApproved(payment: Payment) {
+    const props = payment.properties();
+    const event = new PaymentApprovedEvent({
+      paymentId: props.paymentId,
+      orderId: props.orderId,
+      userId: props.userId,
+      provider: props.provider,
+      amountUsd: props.amount,
+      amountClp: props.amountClp,
+    });
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await this.eventPublisher.publish(event);
+        return;
+      } catch (error) {
+        this.logger.error(
+          `Intento ${attempt} de publicar PaymentApproved (${props.paymentId}) falló: ${(error as Error).message}`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
+      }
+    }
+
+    this.logger.error(
+      `PaymentApproved NO publicado para el pago ${props.paymentId} (orden ${props.orderId}). Requiere reconciliación.`,
+    );
   }
 }

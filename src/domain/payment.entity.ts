@@ -131,6 +131,10 @@ export class Payment {
     return !!this.userId && this.userId === userId;
   }
 
+  isApproved(): boolean {
+    return this.status === PaymentStatus.APPROVED;
+  }
+
   private assertNotFinal(): void {
     if (
       this.status === PaymentStatus.APPROVED ||
