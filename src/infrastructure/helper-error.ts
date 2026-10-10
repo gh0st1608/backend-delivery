@@ -30,8 +30,8 @@ export class HelperError {
       code = exception.statusCode;
       message = exception.message;
       title = exception.title;
-      status = 400; // Puedes mapearlo según el `statusCode` si deseas
-      statusText = 'BAD_REQUEST';
+      status = exception.httpStatus ?? 400;
+      statusText = HttpStatus[status] || 'BAD_REQUEST';
     }
 
     if (isInfra) {
