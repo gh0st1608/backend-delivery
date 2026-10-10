@@ -7,7 +7,7 @@ import {
   IsIn,
   ValidateIf,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 export class LoginPayloadDto {
   @IsString()
@@ -16,6 +16,9 @@ export class LoginPayloadDto {
 
   @ValidateIf((o) => o.authType === 'password')
   @IsEmail({}, { message: 'El email no es válido' })
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
   email: string;
 
   @ValidateIf((o) => o.authType === 'password')
