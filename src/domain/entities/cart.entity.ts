@@ -39,6 +39,8 @@ export interface CartItemProps {
   name: string;
   price: number;
   quantity: number;
+  storeId?: string;
+  image?: string;
 }
 
 export class CartItem {
@@ -47,6 +49,8 @@ export class CartItem {
     public name: string,
     public price: number,
     public quantity: number,
+    public storeId: string = '',
+    public image: string = '',
   ) {}
 
   increase(q = 1) {
@@ -63,6 +67,8 @@ export class CartItem {
       name: this.name,
       price: this.price,
       quantity: this.quantity,
+      storeId: this.storeId,
+      image: this.image,
     };
   }
 }
@@ -84,7 +90,8 @@ export class Cart {
 
     // Normaliza items
     this.items = (properties.items ?? []).map(
-      (i) => new CartItem(i.productId, i.name, i.price, i.quantity),
+      (i) =>
+        new CartItem(i.productId, i.name, i.price, i.quantity, i.storeId, i.image),
     );
 
     // Defaults
@@ -121,7 +128,14 @@ export class Cart {
       exists.increase(item.quantity);
     } else {
       this.items.push(
-        new CartItem(item.productId, item.name, item.price, item.quantity),
+        new CartItem(
+          item.productId,
+          item.name,
+          item.price,
+          item.quantity,
+          item.storeId,
+          item.image,
+        ),
       );
     }
 

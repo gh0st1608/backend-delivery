@@ -23,11 +23,11 @@ export class CreateItemCartUseCase {
 
   async execute(userId: string, dto: ItemCartDto) {
     try {
-      const { productId, name, price, quantity } = dto.Cart;
+      const { productId, name, price, quantity, storeId, image } = dto.Cart;
       let cart = await this.cartRepo.getByUserId(userId);
       if (!cart) cart = Cart.create(userId);
 
-      cart.addItem({ productId, name, price, quantity });
+      cart.addItem({ productId, name, price, quantity, storeId, image });
       const cartId = await this.cartRepo.save(cart);
       const ev = buildDomainEvent(CART_EVENTS.ITEM_ADDED, {
         userId,

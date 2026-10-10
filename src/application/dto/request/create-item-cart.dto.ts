@@ -3,6 +3,7 @@ import {
   IsString,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -23,6 +24,14 @@ export class ItemCartPayloadDto {
   @IsNumber()
   @Min(1)
   quantity!: number;
+
+  @IsOptional()
+  @IsString()
+  storeId?: string;
+
+  @IsOptional()
+  @IsString()
+  image?: string;
 }
 
 export class ItemCartDto {
