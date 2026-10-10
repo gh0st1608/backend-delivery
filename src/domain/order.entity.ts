@@ -410,6 +410,16 @@ export class Order {
     );
   }
 
+  // El cliente confirma la recepción solo si ya hay un repartidor en curso
+  canBeConfirmedByCustomer(): boolean {
+    return (
+      this.isPaid() &&
+      ['ASSIGNED', 'PREPARING', 'PICKED_UP', 'ON_THE_WAY'].includes(
+        this.statusDelivery,
+      )
+    );
+  }
+
   getTotalUsd(): number {
     return this.totalUsd;
   }

@@ -14,6 +14,7 @@ export enum DomainErrorMessages {
   PRODUCT_NOT_AVAILABLE = 'Uno de los productos ya no está disponible',
   INSUFFICIENT_STOCK = 'No hay stock suficiente para uno de los productos',
   MIXED_STORES = 'Todos los productos deben ser de la misma tienda',
+  ORDER_NOT_CONFIRMABLE = 'La orden aún no puede marcarse como entregada',
 }
 
 export enum DomainSuccessMessages {

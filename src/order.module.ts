@@ -22,6 +22,7 @@ import { CourierRepositoryImpl } from './infrastructure/persistence/dynamodb/cou
 import { GetOrderStatusUseCase } from './application/use-cases/get-order-status.usecase';
 import { GetOrdersUseCase } from './application/use-cases/get-orders.usecase';
 import { AutoAssignCourierUseCase } from './application/use-cases/auto-assign-courier.usecase';
+import { ConfirmDeliveryUseCase } from './application/use-cases/confirm-delivery.usecase';
 import { GetPricingUseCase } from './application/use-cases/get-pricing.usecase';
 import { HandlePaymentApprovedUseCase } from './application/use-cases/handle-payment-approved.usecase';
 import { RetryPendingAssignmentsUseCase } from './application/use-cases/retry-pending-assignments.usecase';
@@ -51,6 +52,7 @@ import { AssignmentRetryScheduler } from './infrastructure/schedulers/assignment
     GetOrderStatusUseCase,
     GetOrdersUseCase,
     UpdateCourierLocationUseCase,
+    ConfirmDeliveryUseCase,
     GetPricingUseCase,
     HandlePaymentApprovedUseCase,
     RetryPendingAssignmentsUseCase,

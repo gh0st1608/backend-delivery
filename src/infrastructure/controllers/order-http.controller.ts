@@ -20,6 +20,7 @@ import { AssignCourierToOrderUseCase } from '../../application/use-cases/assign-
 import { GetOrderStatusUseCase } from '../../application/use-cases/get-order-status.usecase';
 import { GetByParamsDto } from '../../application/dto/request/get-by-params.dto';
 import { GetOrdersUseCase } from '../../application/use-cases/get-orders.usecase';
+import { ConfirmDeliveryUseCase } from '../../application/use-cases/confirm-delivery.usecase';
 import { GetPricingUseCase } from '../../application/use-cases/get-pricing.usecase';
 import { JwtAuthGuard } from '../security/jwt-auth.guard';
 import { InternalApiKeyGuard } from '../security/internal-api-key.guard';
@@ -35,6 +36,7 @@ export class OrderController {
     private readonly assignCourierToOrderUseCase: AssignCourierToOrderUseCase,
     private readonly getOrderStatusUseCase: GetOrderStatusUseCase,
     private readonly getOrdersUseCase: GetOrdersUseCase,
+    private readonly confirmDeliveryUseCase: ConfirmDeliveryUseCase,
     private readonly getPricingUseCase: GetPricingUseCase,
   ) {}
 
@@ -107,6 +109,24 @@ export class OrderController {
       Entities.ORDER,
       statusDelivery,
       DomainSuccessMessages.GET_ORDER_STATUS_SUCESS,
+    );
+  }
+
+  // El cliente confirma que recibió su pedido
+  @UseGuards(JwtAuthGuard)
+  @Patch(':orderId/confirm-delivery')
+  async confirmDelivery(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('orderId') orderId: string,
+  ) {
+    const order = await this.confirmDeliveryUseCase.execute(
+      orderId,
+      user.userId,
+    );
+    return this.ok(
+      Entities.ORDER,
+      order,
+      DomainSuccessMessages.UPDATE_ORDER_SUCCESS,
     );
   }
 
