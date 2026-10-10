@@ -5,6 +5,8 @@ export enum ServerErrorMessages {
 export enum DomainErrorMessages {
   PAYMENT_NOT_FOUND = 'Pago no encontrado',
   PAYMENT_NOT_COMPLETE = 'Pago no compleado',
+  ORDER_NOT_PAYABLE = 'La orden no existe o ya no está pendiente de pago',
+  INVALID_RETURN_URL = 'URL de retorno no permitida',
 }
 
 export enum InfraErrorMessages{

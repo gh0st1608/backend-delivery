@@ -12,6 +12,8 @@ import { PaypalPaymentGatewayImpl } from './infrastructure/services/paypal-payme
 import { PaypalPaymentGatewaySymbol } from './domain/services/paypal.gateway';
 import { CreatePaymentPaypalUseCase } from './application/use-cases/create-payment-by-paypal.use-case';
 import { PaypalConfigProvider } from './infrastructure/config/paypal.provider';
+import { OrderGatewaySymbol } from './domain/services/order.gateway';
+import { OrderHttpClientImpl } from './infrastructure/clients/order-http.client';
 
 
 @Module({
@@ -46,6 +48,10 @@ import { PaypalConfigProvider } from './infrastructure/config/paypal.provider';
     {
       provide: PaypalPaymentGatewaySymbol,
       useClass: PaypalPaymentGatewayImpl,
+    },
+    {
+      provide: OrderGatewaySymbol,
+      useClass: OrderHttpClientImpl,
     },
 
     // =============================

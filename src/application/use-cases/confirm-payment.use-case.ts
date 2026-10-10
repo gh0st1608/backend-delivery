@@ -29,7 +29,7 @@ export class ConfirmPaymentUseCase {
     private readonly eventPublisher: PaymentEventPublisher,
   ) {}
 
-  async execute(confirmDto: ConfirmPaymentDto) {
+  async execute(userId: string, confirmDto: ConfirmPaymentDto) {
     const { token, provider } = confirmDto.Payment;
     // 1️⃣ Obtener pago existente
     const payment = await this.paymentRepository.findByProviderOrderId(
@@ -37,7 +37,8 @@ export class ConfirmPaymentUseCase {
       token,
     );
 
-    if (!payment) {
+    // Solo quien inició el pago puede confirmarlo
+    if (!payment || !payment.belongsTo(userId)) {
       throw new PaymentNotFoundException();
     }
 

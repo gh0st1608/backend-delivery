@@ -11,6 +11,10 @@ export interface PaymentRequired {
 
 export interface PaymentOptional {
   readonly paymentId: string;
+  readonly userId: string;
+  // amount/currency = lo cobrado en PayPal (USD); amountClp = lo que vio el cliente
+  readonly amountClp: number;
+  readonly exchangeRateUsdClp: number;
   readonly status: PaymentStatus;
   readonly providerPaymentId: string;
   readonly payerEmail: string;
@@ -30,6 +34,9 @@ export type PaymentPropertiesUpdate = Partial<
 export class Payment {
   private paymentId: string;
   private orderId: string;
+  private userId: string;
+  private amountClp: number;
+  private exchangeRateUsdClp: number;
   private providerOrderId: string;
   private amount: number;
   private currency: string;
@@ -51,11 +58,16 @@ export class Payment {
     return {
       paymentId: this.paymentId,
       orderId: this.orderId,
+      userId: this.userId,
       amount: this.amount,
+      amountClp: this.amountClp,
+      exchangeRateUsdClp: this.exchangeRateUsdClp,
       currency: this.currency,
       providerOrderId: this.providerOrderId,
       status: this.status,
       provider: this.provider,
+      providerPaymentId: this.providerPaymentId,
+      payerEmail: this.payerEmail,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       deletedAt: this.deletedAt,
@@ -64,6 +76,9 @@ export class Payment {
 
   static create(data: {
     orderId: string;
+    userId?: string;
+    amountClp?: number;
+    exchangeRateUsdClp?: number;
     amount: number;
     currency: string;
     provider: PaymentProvider;
@@ -73,6 +88,9 @@ export class Payment {
     return new Payment({
       paymentId: uuidv4(),
       orderId: data.orderId,
+      userId: data.userId,
+      amountClp: data.amountClp,
+      exchangeRateUsdClp: data.exchangeRateUsdClp,
       providerOrderId: data.providerOrderId,
       amount: data.amount,
       currency: data.currency,
@@ -109,6 +127,10 @@ export class Payment {
     this.updatedAt = new Date();
   }
 
+  belongsTo(userId: string): boolean {
+    return !!this.userId && this.userId === userId;
+  }
+
   private assertNotFinal(): void {
     if (
       this.status === PaymentStatus.APPROVED ||
@@ -128,8 +150,11 @@ export class Payment {
       GSI2SK: `PROVIDER#${this.provider}`,
       paymentId: this.paymentId,
       orderId: this.orderId,
+      userId: this.userId,
       providerOrderId: this.providerOrderId,
       amount: this.amount,
+      amountClp: this.amountClp,
+      exchangeRateUsdClp: this.exchangeRateUsdClp,
       currency: this.currency,
       status: this.status,
       provider: this.provider,
@@ -145,6 +170,9 @@ export class Payment {
     return new Payment({
       paymentId: item.paymentId,
       orderId: item.orderId,
+      userId: item.userId,
+      amountClp: item.amountClp,
+      exchangeRateUsdClp: item.exchangeRateUsdClp,
       providerOrderId: item.providerOrderId,
       amount: item.amount,
       currency: item.currency,
