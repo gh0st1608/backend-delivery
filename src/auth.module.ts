@@ -29,6 +29,7 @@ import { RefreshSessionUseCase } from './application/refresh-session.application
 import { LogoutUseCase } from './application/logout.application';
 import { RefreshTokenRepositorySymbol } from './domain/repository/refresh-token.repository';
 import { RefreshTokenRepositoryImpl } from './infrastructure/repository/refresh-token.repository.impl';
+import { InternalApiKeyGuard } from './infrastructure/internal-api-key.guard';
 
 @Module({
   imports: [
@@ -54,6 +55,8 @@ import { RefreshTokenRepositoryImpl } from './infrastructure/repository/refresh-
     IssueTokensUseCase,
     RefreshSessionUseCase,
     LogoutUseCase,
+    AccessTokenGuard,
+    InternalApiKeyGuard,
     {
       provide: RefreshTokenRepositorySymbol,
       useClass: RefreshTokenRepositoryImpl,

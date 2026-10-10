@@ -1,20 +1,19 @@
 import {
   IsString,
-  IsOptional,
-  IsNotEmpty,
   ValidateNested,
   IsArray,
+  ArrayMinSize,
+  ArrayMaxSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
+// El usuario se obtiene del access token, no del body (evita IDOR)
 export class PreferencePayloadDto {
-  @IsString()
-  @IsNotEmpty({ message: 'userId no puede ser vacío'})
-  userId: string;
-
-  @IsOptional()
   @IsArray()
-  categoryIds?: string[];
+  @ArrayMinSize(1)
+  @ArrayMaxSize(10)
+  @IsString({ each: true })
+  categoryIds: string[];
 }
 
 export class CreatePreferenceDto {

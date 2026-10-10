@@ -19,8 +19,17 @@ export class CreatePreferencesUseCase {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async execute(input: CreatePreferenceDto): Promise<CreatePreferenceResult> {
-    const { userId, categoryIds } = input.Preference;
+  async execute(
+    userId: string,
+    input: CreatePreferenceDto,
+  ): Promise<CreatePreferenceResult> {
+    const { categoryIds } = input.Preference;
+
+    const user = await this.userRepository.findById(userId);
+
+    if (!user) {
+      throw new UserNotFoundException();
+    }
 
     const ids: string[] = [];
 
@@ -28,12 +37,6 @@ export class CreatePreferencesUseCase {
       const preference = Preference.create({ userId, categoryId });
       const preferenceId = await this.preferenceRepository.save(preference);
       ids.push(preferenceId);
-    }
-
-    const user = await this.userRepository.findById(userId);
-    
-    if (!user) {
-      throw new UserNotFoundException();
     }
 
     user.update({

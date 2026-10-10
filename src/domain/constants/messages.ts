@@ -9,6 +9,7 @@ export enum DomainErrorMessages {
   INVALID_VERIFICATION_CODE = 'El código ingresado es incorrecto',
   NOT_EXIST_VERIFICATION_CODE = 'No existe ningún código activo para este usuario',
   INVALID_REFRESH_TOKEN = 'La sesión no es válida o expiró. Inicia sesión nuevamente.',
+  FORBIDDEN_RESOURCE = 'No tienes permiso para acceder a este recurso',
 }
 
 export enum InfraErrorMessages{

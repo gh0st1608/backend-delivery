@@ -34,10 +34,12 @@ import { GetMeUseCase } from '../application/get-me.application';
 import { AccessTokenGuard } from './access-token.guard';
 import { AuthenticatedUser } from '../domain/interfaces/security.interface';
 import { CurrentUser } from './current-user.decorator';
+import { InternalApiKeyGuard } from './internal-api-key.guard';
 import { RefreshSessionUseCase } from '../application/refresh-session.application';
 import { LogoutUseCase } from '../application/logout.application';
 import { RefreshTokenDto } from '../application/dto/request/refresh-token.dto';
 import { AuthResponseDto } from '../application/dto/response/response-custom.dto';
+import { ForbiddenResourceException } from '../application/exceptions/forbidden-resource.exception';
 import { jwtConfig, refreshCookieConfig } from './config/jwt.config';
 
 @Controller('auth')
@@ -126,9 +128,16 @@ export class AuthController {
     return this.setPasswordUseCase.execute(body);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Post('preferences')
-  async save(@Body() body: CreatePreferenceDto) {
-    const preferencesIds = await this.createPreferenceUseCase.execute(body);
+  async save(
+    @CurrentUser() currentUser: AuthenticatedUser,
+    @Body() body: CreatePreferenceDto,
+  ) {
+    const preferencesIds = await this.createPreferenceUseCase.execute(
+      currentUser.userId,
+      body,
+    );
     return this.ok(
       Entities.PREFERENCE,
       preferencesIds,
@@ -136,6 +145,8 @@ export class AuthController {
     );
   }
 
+  // Listados completos: solo para la plataforma de administración / servicios internos
+  @UseGuards(InternalApiKeyGuard)
   @Get('users')
   async getUsers(@Query() query: GetByParamsDto) {
     const users = await this.getUsersUseCase.execute(query);
@@ -147,13 +158,22 @@ export class AuthController {
     );
   }
 
+  // Un usuario solo puede consultar su propio perfil (BOLA / OWASP API1)
+  @UseGuards(AccessTokenGuard)
   @Get('users/:id')
-  async getById(@Param('id') id: string) {
-    const { user } = await this.getUserByIddUseCase.execute(id);
+  async getById(
+    @CurrentUser() currentUser: AuthenticatedUser,
+    @Param('id') id: string,
+  ) {
+    if (currentUser.userId !== id) {
+      throw new ForbiddenResourceException();
+    }
 
+    const { user } = await this.getUserByIddUseCase.execute(id);
     return this.ok(Entities.USER, user, DomainSuccessMessages.GET_USER_SUCESS);
   }
 
+  @UseGuards(InternalApiKeyGuard)
   @Get('preferences')
   async getPreferences(@Query() query: GetByParamsDto) {
     const preferences = await this.getPreferencesUseCase.execute(query);
