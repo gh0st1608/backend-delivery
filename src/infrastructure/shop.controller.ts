@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Body, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { InternalApiKeyGuard } from './security/internal-api-key.guard';
 
 import { CreateProductUseCase } from '../application/create-product.application';
 import { GetProductByIdUseCase } from '../application/get-product-by-id.application';
@@ -34,6 +43,8 @@ export class ShopController {
     );
   }
 
+  // Gestión del catálogo: reservado a la plataforma de administración
+  @UseGuards(InternalApiKeyGuard)
   @Post('products')
   async createProduct(@Body() body: CreateProductDto) {
     const product = await this.createProductUseCase.execute(body);
@@ -57,6 +68,8 @@ export class ShopController {
     );
   }
 
+  // Gestión del catálogo: reservado a la plataforma de administración
+  @UseGuards(InternalApiKeyGuard)
   @Post('categories')
   async createCategory(@Body() body: CreateCategoryDto) {
     const category = await this.createCategoryUseCase.execute(body);
