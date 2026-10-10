@@ -5,7 +5,6 @@ import {
 } from '../../domain/repository/cart.repository';
 import { HttpStatusResponse } from '../../domain/constants/http-code';
 import { DomainSuccessMessages } from '../../domain/constants/messages';
-import { CartNotFoundException } from '../exceptions/cart-not-found.exception';
 
 @Injectable()
 export class GetCartUseCase {
@@ -16,12 +15,12 @@ export class GetCartUseCase {
   async execute(userId: string) {
     try {
       const cart = await this.cartRepo.getByUserId(userId);
-      if (!cart) throw CartNotFoundException;
 
+      // Un usuario sin carrito tiene un carrito vacío, no un error
       return {
         cart: {
-          items: cart.listItems(),
-          //total: cart.total(),
+          items: cart ? cart.listItems() : [],
+          total: cart ? cart.total() : 0,
         },
         statusCode: HttpStatusResponse.OK,
         message: DomainSuccessMessages.GET_CART_SUCESS,
