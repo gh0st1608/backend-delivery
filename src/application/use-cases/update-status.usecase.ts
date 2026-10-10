@@ -22,7 +22,6 @@ export class UpdateOrderStatusDeliveryUseCase {
     orderId: string,
     newStatus: OrderDeliveryStatus,
   ): Promise<CreateOrUpdateOrderResult> {
-    try{
     const order = await this.orderRepository.getById(orderId);
     if (!order) throw new OrderNotFoundException();
 
@@ -56,8 +55,5 @@ export class UpdateOrderStatusDeliveryUseCase {
     return {
       orderId,
     };
-    } catch(error){
-      console.log(error)
-    }
   }
 }
