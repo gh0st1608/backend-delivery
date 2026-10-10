@@ -3,6 +3,7 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
+import { randomInt } from 'crypto';
 import { AuthService } from '../../domain/services/auth.service';
 import { User } from '../../domain/user.entity';
 
@@ -10,8 +11,9 @@ import { User } from '../../domain/user.entity';
 export class AuthServiceImpl implements AuthService {
   private readonly saltRounds = 10;
 
+  // CSPRNG: el código de verificación no debe ser predecible
   generateVerificationCode(): string {
-    return Math.floor(1000 + Math.random() * 9000).toString();
+    return randomInt(1000, 10000).toString();
   }
 
   async comparePasswords(raw: string, hashed: string): Promise<boolean> {
