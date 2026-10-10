@@ -1,6 +1,6 @@
 terraform {
-  required_version = ">= 1.2.0"
-  
+  required_version = ">= 1.5.0"
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -10,9 +10,14 @@ terraform {
       source  = "hashicorp/archive"
       version = "~> 2.2"
     }
-    local = {
-      source  = "hashicorp/local"
-      version = "~> 2.4"
+  }
+
+  # Estado remoto en Terraform Cloud
+  cloud {
+    organization = "solutionserj"
+
+    workspaces {
+      name = "backend-delivery"
     }
   }
 }

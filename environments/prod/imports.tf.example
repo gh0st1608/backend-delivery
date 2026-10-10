@@ -1,0 +1,29 @@
+# =============================================================
+# 📥 Adoptar recursos que YA existen en la cuenta de AWS
+# -------------------------------------------------------------
+# Si un recurso se creó a mano (tablas, Lambdas, bucket...), el
+# primer `apply` fallaría con "already exists". Copia los bloques
+# que correspondan al final de main.tf y ejecuta `terraform plan`:
+# Terraform los adopta en el estado sin recrearlos. Tras el apply,
+# puedes quitarlos.
+# =============================================================
+
+# ---------- DynamoDB ----------
+# import {
+#   for_each = toset(["Users", "Preferences", "RefreshTokens", "Products", "Categories", "Carts", "Orders", "Couriers", "Settings", "Payments"])
+#   to       = module.dynamodb.aws_dynamodb_table.this[each.key]
+#   id       = each.key
+# }
+
+# ---------- Lambdas (el código desplegado se conserva) ----------
+# import {
+#   for_each = toset(["auth", "shop", "checkout", "order", "payment", "notification"])
+#   to       = module.lambda[each.key].aws_lambda_function.this
+#   id       = "foodstore-${each.key}-service"
+# }
+
+# ---------- Bucket de artefactos ----------
+# import {
+#   to = module.artifacts_bucket[0].aws_s3_bucket.this
+#   id = "foodstore-microservices-lambdas-functions"
+# }

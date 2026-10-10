@@ -1,0 +1,7 @@
+# Valores no secretos de producción. En Terraform Cloud se cargan como
+# variables del workspace; los secretos (jwt_*, internal_api_key,
+# paypal_*) SIEMPRE como "sensitive" en el workspace.
+ses_sender_email            = "no-reply@tu-dominio.com"
+cors_origins                = "https://app.tu-dominio.com"
+paypal_env                  = "production"
+payment_allowed_return_urls = "https://app.tu-dominio.com"
