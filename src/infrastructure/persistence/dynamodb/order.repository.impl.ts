@@ -23,7 +23,7 @@ export type DynamoCursor = Record<string, AttributeValue>;
 @Injectable()
 export class OrderRepositoryImpl implements OrderRepository {
   private readonly docClient: DynamoDBDocumentClient;
-  private readonly tableName = process.env.CART_TABLE ?? 'Orders';
+  private readonly tableName = process.env.ORDER_TABLE ?? 'Orders';
 
   constructor() {
     this.docClient = DynamoDBDocumentClient.from(
@@ -146,22 +146,6 @@ export class OrderRepositoryImpl implements OrderRepository {
   // MAPPER
   // ======================================================
 
-  private toDomain = (raw: Record<string, any>): Order => {
-    return Order.fromPrimitives({
-      orderId: raw.orderId,
-      userId: raw.userId,
-      courierId: raw.courierId,
-      pickupLat: raw.pickupLat,
-      pickupLng: raw.pickupLng,
-      dropoffLat: raw.dropoffLat,
-      dropoffLng: raw.dropoffLng,
-      items: raw.items,
-      totalAmount: raw.totalAmount,
-      status: raw.status,
-      statusDelivery: raw.statusDelivery,
-      createdAt: new Date(raw.createdAt),
-      updatedAt: raw.updatedAt ? new Date(raw.updatedAt) : null,
-      deletedAt: raw.deletedAt ? new Date(raw.deletedAt) : null,
-    });
-  };
+  private toDomain = (raw: Record<string, any>): Order =>
+    Order.fromPrimitives(raw);
 }
