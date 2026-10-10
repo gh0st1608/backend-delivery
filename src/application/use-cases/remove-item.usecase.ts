@@ -22,7 +22,7 @@ export class RemoveItemUseCase {
   async execute(userId: string, productId: string) {
     try {
       const cart = await this.cartRepo.getByUserId(userId);
-      if (!cart) throw CartNotFoundException;
+      if (!cart) throw new CartNotFoundException();
       cart.removeItem(productId);
       const cartId = await this.cartRepo.save(cart);
 
