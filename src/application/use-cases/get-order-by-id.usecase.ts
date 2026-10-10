@@ -11,10 +11,14 @@ export class GetOrderByIdUseCase {
     private readonly orderRepository: OrderRepository,
   ) {}
 
-  async execute(id: string): Promise<GetOrderResult<Order>> {
+  /**
+   * requesterId: usuario autenticado. Si la orden es de otro usuario se
+   * responde igual que si no existiera (BOLA / OWASP API1).
+   */
+  async execute(id: string, requesterId: string): Promise<GetOrderResult<Order>> {
     const order = await this.orderRepository.getById(id);
 
-    if (!order) {
+    if (!order || !order.isOwnedBy(requesterId)) {
       throw new OrderNotFoundException();
     }
 

@@ -6,6 +6,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateOrderUseCase } from '../../application/use-cases/create-order.usecase';
 import { GetOrderByIdUseCase } from '../../application/use-cases/get-order-by-id.usecase';
@@ -19,6 +20,10 @@ import { AssignCourierToOrderUseCase } from '../../application/use-cases/assign-
 import { GetOrderStatusUseCase } from '../../application/use-cases/get-order-status.usecase';
 import { GetByParamsDto } from '../../application/dto/request/get-by-params.dto';
 import { GetOrdersUseCase } from '../../application/use-cases/get-orders.usecase';
+import { JwtAuthGuard } from '../security/jwt-auth.guard';
+import { InternalApiKeyGuard } from '../security/internal-api-key.guard';
+import { CurrentUser } from '../security/current-user.decorator';
+import { AuthenticatedUser } from '../../domain/interfaces/security.interface';
 
 @Controller('order')
 export class OrderController {
@@ -31,19 +36,46 @@ export class OrderController {
     private readonly getOrdersUseCase: GetOrdersUseCase,
   ) {}
 
+  // =======================
+  // CLIENTE (access token)
+  // =======================
+
+  @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Body() dto: CreateOrderDto) {
-    const orderId = await this.createOrderUseCase.execute(dto);
+  async create(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CreateOrderDto,
+  ) {
+    const order = await this.createOrderUseCase.execute(user.userId, dto);
     return this.ok(
       Entities.ORDER,
-      orderId,
-      DomainSuccessMessages.GET_ORDER_SUCESS,
+      order,
+      DomainSuccessMessages.CREATE_ORDER_SUCCESS,
     );
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async getList(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: GetByParamsDto,
+  ) {
+    const orders = await this.getOrdersUseCase.execute(user.userId, query);
+    return this.okPaginated(
+      orders.items,
+      orders.count,
+      orders.nextCursor,
+      DomainSuccessMessages.GET_ORDERS_SUCCESS,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  async getById(@Param('id') id: string) {
-    const { order } = await this.getOrderByIdUseCase.execute(id);
+  async getById(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+  ) {
+    const { order } = await this.getOrderByIdUseCase.execute(id, user.userId);
     return this.ok(
       Entities.ORDER,
       order,
@@ -51,29 +83,16 @@ export class OrderController {
     );
   }
 
-  @Get()
-  async getList(@Query() query: GetByParamsDto) {
-    const users = await this.getOrdersUseCase.execute(query);
-    return this.okPaginated(
-      users.items,
-      users.count,
-      users.nextCursor,
-      DomainSuccessMessages.GET_COURIER_SUCESS,
-    );
-  }
-
-  @Patch(':orderId/status')
-  async updateStatusOrder(
-    @Param('orderId') orderId: string,
-    @Body() body: UpdateStatusDto,
-  ) {
-    const { statusDelivery } = body.Order;
-    return this.updateOrderStatusUseCase.execute(orderId, statusDelivery);
-  }
-
+  @UseGuards(JwtAuthGuard)
   @Get(':orderId/status-delivery')
-  async getStatusOrder(@Param('orderId') orderId: string) {
-    const statusDelivery = await this.getOrderStatusUseCase.execute(orderId);
+  async getStatusOrder(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('orderId') orderId: string,
+  ) {
+    const statusDelivery = await this.getOrderStatusUseCase.execute(
+      orderId,
+      user.userId,
+    );
     return this.ok(
       Entities.ORDER,
       statusDelivery,
@@ -81,7 +100,32 @@ export class OrderController {
     );
   }
 
-  @Get(':orderId/assign/:courierId')
+  // ==========================================
+  // REPARTIDOR / OPERADOR (clave interna)
+  // Hasta que exista la plataforma de administración con roles
+  // ==========================================
+
+  @UseGuards(InternalApiKeyGuard)
+  @Patch(':orderId/status')
+  async updateStatusOrder(
+    @Param('orderId') orderId: string,
+    @Body() body: UpdateStatusDto,
+  ) {
+    const { statusDelivery } = body.Order;
+    const order = await this.updateOrderStatusUseCase.execute(
+      orderId,
+      statusDelivery,
+    );
+    return this.ok(
+      Entities.ORDER,
+      order,
+      DomainSuccessMessages.UPDATE_ORDER_SUCCESS,
+    );
+  }
+
+  // Asignación manual (Settings.assignment.mode = MANUAL o reasignación)
+  @UseGuards(InternalApiKeyGuard)
+  @Post(':orderId/assign/:courierId')
   async assignCourier(
     @Param('orderId') orderId: string,
     @Param('courierId') courierId: string,

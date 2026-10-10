@@ -23,9 +23,9 @@ export class CreateOrderUseCase {
     private readonly autoAssignCourierUseCase: AutoAssignCourierUseCase,
   ) {}
 
-  async execute(dto: CreateOrderDto): Promise<CreateOrUpdateOrderResult> {
+  async execute(userId: string, dto: CreateOrderDto): Promise<CreateOrUpdateOrderResult> {
     try {
-      const { userId, storeId, items, deliveryLat, deliveryLng } = dto.Order;
+      const { storeId, items, deliveryLat, deliveryLng } = dto.Order;
       const { pickupLat, pickupLng } = await this.storeLocationService.getLocation(storeId);
 
       const order = Order.create(userId, pickupLat, pickupLng, deliveryLat, deliveryLng, items);

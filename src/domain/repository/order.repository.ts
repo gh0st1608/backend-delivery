@@ -6,6 +6,10 @@ export interface OrderRepository {
   save(order: Order): Promise<string>;
   getById(id: string): Promise<Order | null>;
   getList(query: GetByParamsDto): Promise<PaginatedResult<Order>>;
+  getListByUser(
+    userId: string,
+    query: GetByParamsDto,
+  ): Promise<PaginatedResult<Order>>;
 }
 
 export const OrderRepositorySymbol = Symbol('OrderRepository');

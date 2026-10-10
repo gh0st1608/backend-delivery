@@ -22,4 +22,5 @@ export enum DomainSuccessMessages {
   CREATE_COURIER_SUCESS = 'Courier creado con exito',
   GET_COURIER_SUCESS = 'Courier obtenido con exito',
   UPDATE_COURIER_SUCCESS = 'Courier actualizado con exito',
+  GET_ORDERS_SUCCESS = 'Ordenes obtenidas con exito',
 }

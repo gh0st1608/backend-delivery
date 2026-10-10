@@ -10,9 +10,10 @@ export class GetOrdersUseCase {
     private readonly orderRepository: OrderRepository,
   ) {}
 
-  async execute(query: GetByParamsDto): Promise<GetOrdersResult> {
+  // Solo las órdenes del usuario autenticado
+  async execute(userId: string, query: GetByParamsDto): Promise<GetOrdersResult> {
     const { items, count, nextCursor } =
-      await this.orderRepository.getList(query);
+      await this.orderRepository.getListByUser(userId, query);
     return { items, count, nextCursor };
   }
 }

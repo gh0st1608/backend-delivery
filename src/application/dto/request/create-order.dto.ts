@@ -19,10 +19,6 @@ class CreateOrderItemDto {
 export class CreateOrderPayloadDto {
   @IsString()
   @IsNotEmpty()
-  userId: string;
-
-  @IsString()
-  @IsNotEmpty()
   storeId: string;
 
   @IsNumber()

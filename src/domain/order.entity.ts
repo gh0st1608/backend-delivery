@@ -266,6 +266,14 @@ export class Order {
     Object.assign(this, props);
   }
 
+  // =======================================================
+  // QUERIES
+  // =======================================================
+
+  isOwnedBy(userId: string): boolean {
+    return this.userId === userId;
+  }
+
   getPickupLocation() {
     return {
       lat: this.pickupLat,

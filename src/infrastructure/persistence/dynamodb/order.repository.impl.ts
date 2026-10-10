@@ -125,6 +125,49 @@ export class OrderRepositoryImpl implements OrderRepository {
 
 
   // ======================================================
+  // ÓRDENES DE UN USUARIO
+  // ======================================================
+
+  async getListByUser(
+    userId: string,
+    query: GetByParamsDto,
+  ): Promise<PaginatedResult<Order>> {
+    try {
+      const limit = Number(query.limit) || 10;
+      const result = await this.docClient.send(
+        new QueryCommand({
+          TableName: this.tableName,
+          IndexName: 'GSI_ORDER',
+          KeyConditionExpression: 'GSI1PK = :pk',
+          FilterExpression: 'userId = :u',
+          ExpressionAttributeValues: {
+            ':pk': 'ORDER',
+            ':u': userId,
+          },
+          Limit: limit,
+          ExclusiveStartKey: query.cursor
+            ? this.decodeCursor(query.cursor as Cursor)
+            : undefined,
+          ScanIndexForward: false,
+        }),
+      );
+
+      const items = result.Items ?? [];
+
+      return {
+        items: items.map((item) => this.toDomain(item)),
+        count: items.length,
+        nextCursor: result.LastEvaluatedKey
+          ? this.encodeCursor(result.LastEvaluatedKey)
+          : undefined,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new GetListFailedException();
+    }
+  }
+
+  // ======================================================
   // CURSOR HELPERS
   // ======================================================
 
