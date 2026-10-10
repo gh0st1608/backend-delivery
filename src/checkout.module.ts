@@ -8,6 +8,7 @@ import { ClearCartUseCase } from './application/use-cases/clear-cart.usecase';
 import { CreateItemCartUseCase } from './application/use-cases/create-item-cart.usecase';
 import { GetCartUseCase } from './application/use-cases/get-cart-by-user.usecase';
 import { RemoveItemUseCase } from './application/use-cases/remove-item.usecase';
+import { UpdateItemQuantityUseCase } from './application/use-cases/update-item-quantity.usecase';
 import { CartRepositorySymbol } from './domain/repository/cart.repository';
 import { EventBridgeCartEventPublisher } from './infrastructure/eventbridge/eventbridge-cart-event.publisher';
 import { CartEventPublisherSymbol } from './domain/services/cart-event.publisher';
@@ -25,6 +26,7 @@ import { CartEventPublisherSymbol } from './domain/services/cart-event.publisher
     CreateItemCartUseCase,
     GetCartUseCase,
     RemoveItemUseCase,
+    UpdateItemQuantityUseCase,
     {
       provide: CartRepositorySymbol,
       useClass: CartRepositoryImpl,

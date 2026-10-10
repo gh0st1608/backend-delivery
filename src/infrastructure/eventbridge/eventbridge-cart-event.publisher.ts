@@ -46,6 +46,10 @@ export class EventBridgeCartEventPublisher implements CartEventPublisher {
     return this.publish('CartItemRemoved', event);
   }
 
+  async publishCartUpdated(event: DomainEvent): Promise<void> {
+    return this.publish('CartUpdated', event);
+  }
+
   async publishCartCleared(event: DomainEvent): Promise<void> {
     return this.publish('CartCleared', event);
   }

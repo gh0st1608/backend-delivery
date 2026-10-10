@@ -2,16 +2,19 @@ import { CreateItemCartUseCase } from '../../application/use-cases/create-item-c
 import { GetCartUseCase } from '../../application/use-cases/get-cart-by-user.usecase';
 import { RemoveItemUseCase } from '../../application/use-cases/remove-item.usecase';
 import { ClearCartUseCase } from '../../application/use-cases/clear-cart.usecase';
+import { UpdateItemQuantityUseCase } from '../../application/use-cases/update-item-quantity.usecase';
 import {
   Body,
   Controller,
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { ItemCartDto } from '../../application/dto/request/create-item-cart.dto';
+import { UpdateItemCartDto } from '../../application/dto/request/update-item-cart.dto';
 import { JwtAuthGuard } from '../security/jwt-auth.guard';
 import { CurrentUser } from '../security/current-user.decorator';
 import { AuthenticatedUser } from '../../domain/interfaces/security.interface';
@@ -26,6 +29,7 @@ export class CheckoutController {
     private readonly getCartUseCase: GetCartUseCase,
     private readonly removeItemUseCase: RemoveItemUseCase,
     private readonly clearCartUseCase: ClearCartUseCase,
+    private readonly updateItemQuantityUseCase: UpdateItemQuantityUseCase,
   ) {}
 
   @Post('carts/me/items')
@@ -39,6 +43,15 @@ export class CheckoutController {
   @Get('carts/me')
   async getByUser(@CurrentUser() user: AuthenticatedUser) {
     return this.getCartUseCase.execute(user.userId);
+  }
+
+  @Patch('carts/me/items/:productId')
+  async updateItemQuantity(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('productId') productId: string,
+    @Body() body: UpdateItemCartDto,
+  ) {
+    return this.updateItemQuantityUseCase.execute(user.userId, productId, body);
   }
 
   @Delete('carts/me/items/:productId')

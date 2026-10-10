@@ -142,6 +142,20 @@ export class Cart {
     this.touch();
   }
 
+  updateItemQuantity(productId: string, quantity: number): boolean {
+    const item = this.items.find((i) => i.productId === productId);
+    if (!item) return false;
+
+    if (quantity <= 0) {
+      this.removeItem(productId);
+      return true;
+    }
+
+    item.quantity = quantity;
+    this.touch();
+    return true;
+  }
+
   removeItem(productId: string) {
     this.items = this.items.filter((i) => i.productId !== productId);
     this.touch();

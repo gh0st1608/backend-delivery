@@ -4,6 +4,7 @@ export interface CartEventPublisher {
   publishCartCreated(event: DomainEvent): Promise<void>;
   publishItemAdded(event: DomainEvent): Promise<void>;
   publishItemRemoved(event: DomainEvent): Promise<void>;
+  publishCartUpdated(event: DomainEvent): Promise<void>;
   publishCartCleared(event: DomainEvent): Promise<void>;
 }
 
