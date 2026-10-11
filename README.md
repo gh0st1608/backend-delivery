@@ -149,6 +149,16 @@ En el frontend Expo funciona igual: `expo start` usa `.env.local` y `expo export
 - **AWS real, imposible:** `up.sh` quita `AWS_PROFILE` del entorno y los `.env.local` apuntan a `http://localhost:4566`, así que nada sale a una cuenta real.
 - **Lambdas en LocalStack:** para levantarlas también, `terraform -chdir=environments/dev apply -var enable_lambdas=true`. Ojo: compiten con los servicios locales por las colas SQS.
 
+### Problemas frecuentes
+
+| Síntoma | Causa y solución |
+|---|---|
+| `EADDRINUSE: address already in use :::300X` en `.run/logs/<servicio>.log` | Quedó otra instancia del servicio, por ejemplo un `nest start --watch` lanzado a mano. `./up.sh` limpia los duplicados del servicio antes de arrancarlo; si el puerto lo ocupa otro programa, lo indica. Para empezar de cero: `./down.sh && ./up.sh`. |
+| `El puerto XXXX lo ocupa otro programa` | Algo ajeno a FoodStore usa ese puerto. Libéralo o cambia `PORT` en el `.env.local` del servicio. |
+| Cambiar entre web y `--lan` no tiene efecto | Expo ya estaba corriendo en el otro modo: `./down.sh` y luego `./up.sh --lan`. |
+
+`down.sh` identifica los procesos por su línea de comando (el vigilante `nest --watch`, la app, Expo y el simulador), no por el puerto. Así no quedan vigilantes huérfanos que relancen la app y compitan por el puerto.
+
 ## prod — AWS
 
 1. **Workspace de Terraform Cloud**: si está conectado por VCS, su *Terraform Working Directory* debe ser `environments/prod` (antes era `infra`).
