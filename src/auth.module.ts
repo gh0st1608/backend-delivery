@@ -35,7 +35,8 @@ import { InternalApiKeyGuard } from './infrastructure/internal-api-key.guard';
   imports: [
     PassportModule.register({ defaultStrategy: 'access-token' }),
     ConfigModule.forRoot({
-      envFilePath: `${process.env.NODE_ENV || ''}.env`,
+      // .env.local por defecto; .env.production con NODE_ENV=production
+      envFilePath: `.env.${process.env.NODE_ENV || 'local'}`,
       isGlobal: true,
     }),
   ],
