@@ -61,20 +61,26 @@ wait_for() { # wait_for <descripción> <segundos> <comando...>
   fail "Tiempo agotado esperando: $desc"
 }
 
-pid_alive() { # pid_alive <archivo .pid>
-  [ -f "$1" ] || return 1
-  local pid; pid=$(cat "$1")
-  if is_windows; then tasklist //FI "PID eq $pid" 2>/dev/null | grep -q " $pid "
-  else kill -0 "$pid" 2>/dev/null; fi
-}
+# shellcheck source=scripts/procs.sh
+source "$LOCAL_DIR/scripts/procs.sh"
 
-# Lanza un proceso desacoplado y guarda su PID (Windows: PID nativo para taskkill)
+# Lanza un proceso desacoplado de esta terminal
 spawn() { # spawn <nombre> <dir> <comando...>
   local name=$1 dir=$2; shift 2
   ( cd "$dir" && exec nohup "$@" > "$LOG_DIR/$name.log" 2>&1 < /dev/null ) &
-  local pid=$!
-  if is_windows && [ -r "/proc/$pid/winpid" ]; then cat "/proc/$pid/winpid" > "$RUN_DIR/$name.pid"
-  else echo "$pid" > "$RUN_DIR/$name.pid"; fi
+}
+
+# Un componente está sano si escucha en su puerto y tiene un único vigilante.
+# Si no, se limpian sus procesos (huérfanos o duplicados) para arrancar de cero.
+ensure_clean() { # ensure_clean <componente> <puerto>
+  local name=$1 port=$2 watchers
+  watchers=$(proc_count "$name" watchers | tr -d '\r ')
+  if port_open "$port" && [ "$watchers" = 1 ]; then return 0; fi
+  if [ "$(proc_count "$name" | tr -d '\r ')" != 0 ]; then
+    info "$name: $(proc_stop "$name" | tr -d '\r ') proceso(s) huérfanos o duplicados detenidos"
+    sleep 2
+  fi
+  return 1
 }
 
 # Nada de lo que se lance debe usar credenciales reales de AWS
@@ -127,7 +133,8 @@ node "$LOCAL_DIR/scripts/env-setup.js" "$BACKEND_DIR" "$($FRONT && echo "$FRONTE
 # -------------------------------------------------------------
 step "5/7 Backends"
 for svc in "${SERVICES[@]}"; do
-  if port_open "${PORT[$svc]}"; then info "backend-$svc ya está corriendo en :${PORT[$svc]}"; continue; fi
+  if ensure_clean "$svc" "${PORT[$svc]}"; then info "backend-$svc ya está corriendo en :${PORT[$svc]}"; continue; fi
+  port_open "${PORT[$svc]}" && fail "El puerto ${PORT[$svc]} lo ocupa otro programa (no es backend-$svc)"
   # NODE_ENV=local -> cada servicio carga su .env.local
   spawn "$svc" "$BACKEND_DIR/backend-$svc" env NODE_ENV=local npm run start:dev
   info "backend-$svc iniciando (log: .run/logs/$svc.log)"
@@ -140,9 +147,11 @@ done
 # -------------------------------------------------------------
 step "6/7 Datos de prueba y repartidor simulado"
 node "$LOCAL_DIR/scripts/seed.js" "$BACKEND_DIR" "$RUN_DIR"
-if pid_alive "$RUN_DIR/courier-sim.pid"; then
+n=$(proc_count courier-sim | tr -d '\r ')
+if [ "$n" = 1 ]; then
   info "simulador de repartidor ya está corriendo"
 else
+  [ "$n" != 0 ] && proc_stop courier-sim >/dev/null
   # Recorrido cerca de la tienda de prueba (Lima): debe estar a < 10 km y reportar cada < 120 s
   spawn courier-sim "$BACKEND_DIR/backend-order" env \
     SIM_BASE_URL=http://localhost:3004 \
@@ -156,14 +165,18 @@ fi
 # -------------------------------------------------------------
 if $FRONT; then
   step "7/7 Frontend (Expo)"
-  if port_open 8081; then
-    info "Expo ya está corriendo en :8081 (reinícialo si cambiaste de modo web/lan)"
-  elif [ "$MODE" = lan ]; then
-    spawn expo "$FRONTEND_DIR" npx expo start --lan --port 8081
-    wait_for "Expo en :8081" 180 port_open 8081
+  if [ "$(proc_count expo | tr -d '\r ')" = 1 ] && port_open 8081; then
+    info "Expo ya está corriendo en :8081 (para cambiar entre web y --lan: ./down.sh y luego ./up.sh)"
   else
-    spawn expo "$FRONTEND_DIR" env BROWSER=none npx expo start --web --port 8081
-    wait_for "Expo en :8081" 180 port_open 8081
+    n=$(proc_stop expo | tr -d '\r ')
+    [ "$n" != 0 ] && info "expo: $n proceso(s) huérfanos detenidos" && sleep 2
+    port_open 8081 && fail "El puerto 8081 lo ocupa otro programa (no es Expo)"
+    if [ "$MODE" = lan ]; then
+      spawn expo "$FRONTEND_DIR" npx expo start --lan --port 8081
+    else
+      spawn expo "$FRONTEND_DIR" env BROWSER=none npx expo start --web --port 8081
+    fi
+    wait_for "Expo en :8081 (ver .run/logs/expo.log)" 180 port_open 8081
   fi
 else
   step "7/7 Frontend omitido (--no-front)"
