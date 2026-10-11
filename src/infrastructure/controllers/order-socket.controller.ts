@@ -14,7 +14,7 @@ import {
   OrderRepository,
   OrderRepositorySymbol,
 } from '../../domain/repository/order.repository';
-import { verifyAccessToken } from '../security/jwt-verifier';
+import { extractBearerToken, verifyAccessToken } from '../security/jwt-verifier';
 
 @WebSocketGateway()
 export class OrderTrackingGateway extends SocketConfig {
@@ -61,6 +61,8 @@ export class OrderTrackingGateway extends SocketConfig {
     this.logger.log(
       `👤 Cliente ${client.id} unido a ${SocketRooms.orderTracking(payload.orderId)}`,
     );
+
+    return { status: 'ok' };
   }
 
   @SubscribeMessage('order.tracking.leave')
@@ -71,10 +73,13 @@ export class OrderTrackingGateway extends SocketConfig {
     client.leave(SocketRooms.orderTracking(payload.orderId));
   }
 
-  // Token en el handshake: io(url, { auth: { token } })
+  // Token en el handshake: io(url, { auth: { token } }) en la app; los clientes
+  // que no pueden enviar `auth` (p. ej. Postman) usan "Authorization: Bearer".
   private authenticate(client: Socket): string | null {
     try {
-      const token = client.handshake.auth?.token;
+      const token =
+        client.handshake.auth?.token ??
+        extractBearerToken(client.handshake.headers.authorization);
       return token ? verifyAccessToken(token).userId : null;
     } catch {
       return null;
