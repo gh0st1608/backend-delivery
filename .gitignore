@@ -9,3 +9,6 @@ crash.log
 
 # dev: .env generados a partir de LocalStack
 environments/dev/generated/
+
+# Procesos y logs del entorno local (local/up.sh)
+local/.run/
