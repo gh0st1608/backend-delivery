@@ -19,7 +19,8 @@ import { OrderHttpClientImpl } from './infrastructure/clients/order-http.client'
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: `${process.env.NODE_ENV || ''}.env`,
+      // .env.local por defecto; .env.production con NODE_ENV=production
+      envFilePath: `.env.${process.env.NODE_ENV || 'local'}`,
       isGlobal: true,
     }),
   ],
