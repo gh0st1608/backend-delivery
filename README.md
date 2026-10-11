@@ -578,6 +578,10 @@ cd infra-delivery/local      # worktree de la rama infra
 
 Requisitos, opciones y cómo probar la app: ver el README de la rama `infra` ([infra-delivery/README.md](infra-delivery/README.md), sección *Levantar todo en local*).
 
+### Probar los servicios con Postman
+
+La carpeta [postman/](postman/) tiene la colección con todos los endpoints, los environments **dev** (LocalStack) y **prd** (AWS), y un cliente para probar el tracking por Socket.IO. Ver [postman/README.md](postman/README.md).
+
 ### Opción 2 — Ejecutar un servicio de forma aislada
 
 Con LocalStack y la infraestructura ya levantados (`./up.sh --no-front` o `terraform -chdir=infra-delivery/environments/dev apply -var enable_lambdas=false`):

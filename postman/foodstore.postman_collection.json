@@ -1,0 +1,1908 @@
+{
+  "info": {
+    "_postman_id": "ecf78258-8fc7-ac85-6786-7b8993591fda",
+    "name": "FoodStore SDC — Backend",
+    "description": "Microservicios de FoodStore (auth, shop, checkout, order, payment, notification).\n\n**Environments**: `FoodStore — dev (LocalStack)` y `FoodStore — prd (AWS)`.\n\n**Flujo**: ejecuta los folders en orden (1 → 8). Los tests guardan tokens e ids en el environment.\nEn dev, el folder 7 simula la aprobación del pago; en prd usa \"6. Pagos → Confirmar pago\" tras aprobar en PayPal.\n\n**Autenticación**: Bearer `{{access_token}}` a nivel de colección. Los endpoints de administración usan `X-Internal-Api-Key: {{internal_api_key}}`.\n\n**Socket.IO (tracking)**: Postman no exporta requests Socket.IO en colecciones v2.1. Ver `postman/README.md`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// La app identifica el tipo de cliente: web recibe el refresh token en cookie HttpOnly",
+          "pm.request.headers.upsert({ key: 'X-Client-Type', value: pm.environment.get('client_type') || 'mobile' });"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Catálogo (shop)",
+      "description": "Lectura pública del catálogo. Guarda `category_id`, `product_id`, `product_name`, `product_price`, `product_image` y `store_id` para los siguientes requests.",
+      "item": [
+        {
+          "name": "Listar categorías",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const d = pm.response.json().Data || {};",
+                  "const c = (d.items || [])[0];",
+                  "if (c) pm.environment.set('category_id', c.categoryId);",
+                  "pm.test('Hay categorías', () => pm.expect((d.items || []).length).to.be.above(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shop_url}}/categories?limit=20",
+              "host": [
+                "{{shop_url}}"
+              ],
+              "path": [
+                "categories"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Listar productos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const d = pm.response.json().Data || {};",
+                  "const p = (d.items || [])[0];",
+                  "if (p) {",
+                  "  pm.environment.set('product_id', p.productId);",
+                  "  pm.environment.set('product_name', p.name);",
+                  "  pm.environment.set('product_price', p.price);",
+                  "  pm.environment.set('product_image', p.image || '');",
+                  "  pm.environment.set('store_id', p.storeId);",
+                  "}",
+                  "pm.test('Hay productos', () => pm.expect((d.items || []).length).to.be.above(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shop_url}}/products?limit=20",
+              "host": [
+                "{{shop_url}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Producto por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shop_url}}/products/{{product_id}}",
+              "host": [
+                "{{shop_url}}"
+              ],
+              "path": [
+                "products",
+                "{{product_id}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Ubicación de la tienda",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shop_url}}/stores/{{store_id}}/location",
+              "host": [
+                "{{shop_url}}"
+              ],
+              "path": [
+                "stores",
+                "{{store_id}}",
+                "location"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Auth",
+      "description": "Registro, sesión (RS256 + refresh rotativo) y perfil. Los requests de este folder guardan `access_token` y `refresh_token` en el environment.",
+      "item": [
+        {
+          "name": "Registrar usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                  "const d = pm.response.json().Data || {};",
+                  "if (d.Auth) {",
+                  "  pm.environment.set('access_token', d.Auth.accessToken);",
+                  "  if (d.Auth.refreshToken) pm.environment.set('refresh_token', d.Auth.refreshToken);",
+                  "  pm.test('Devuelve access token', () => pm.expect(d.Auth.accessToken).to.be.a('string'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Un correo nuevo en cada ejecución para poder registrar varias veces",
+                  "pm.environment.set('user_email', `demo+${Date.now()}@foodstore.local`);",
+                  "if (!pm.environment.get('password')) pm.environment.set('password', 'Demo12345!');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{auth_url}}/register",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "register"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"User\": {\n      \"name\": \"Usuario Demo\",\n      \"email\": \"{{user_email}}\",\n      \"password\": \"{{password}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Iniciar sesión",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const d = pm.response.json().Data || {};",
+                  "if (d.Auth) {",
+                  "  pm.environment.set('access_token', d.Auth.accessToken);",
+                  "  if (d.Auth.refreshToken) pm.environment.set('refresh_token', d.Auth.refreshToken);",
+                  "  pm.test('Devuelve access token', () => pm.expect(d.Auth.accessToken).to.be.a('string'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{auth_url}}/login",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Auth\": {\n      \"authType\": \"password\",\n      \"email\": \"{{user_email}}\",\n      \"password\": \"{{password}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Mi perfil (me)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const d = pm.response.json().Data || {};",
+                  "const u = d.user || d.User || d;",
+                  "pm.environment.set('user_id', u.userId);",
+                  "pm.test('No expone la contraseña', () => pm.expect(u).to.not.have.property('password'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{auth_url}}/me",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Renovar sesión (refresh)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const d = pm.response.json().Data || {};",
+                  "if (d.Auth) {",
+                  "  pm.environment.set('access_token', d.Auth.accessToken);",
+                  "  if (d.Auth.refreshToken) pm.environment.set('refresh_token', d.Auth.refreshToken);",
+                  "  pm.test('Devuelve access token', () => pm.expect(d.Auth.accessToken).to.be.a('string'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{auth_url}}/refresh",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "refresh"
+              ]
+            },
+            "description": "Rota el refresh token: el anterior queda inválido y reusarlo revoca toda la sesión. En web el refresh token viaja en la cookie HttpOnly (`X-Client-Type: web`).",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Auth\": {\n      \"refreshToken\": \"{{refresh_token}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Guardar preferencias",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{auth_url}}/preferences",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "preferences"
+              ]
+            },
+            "description": "El usuario sale del access token. Requiere `category_id` (folder Catálogo).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Preference\": {\n      \"categoryIds\": [\n        \"{{category_id}}\"\n      ]\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Usuario por id (solo el propio)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{auth_url}}/users/{{user_id}}",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Recuperar contraseña: enviar código",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{auth_url}}/verify-email",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "verify-email"
+              ]
+            },
+            "description": "Envía un código de 4 dígitos por correo. En dev no hay envío real: el código se lee de la tabla Users en LocalStack (ver README).",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"User\": {\n      \"email\": \"{{user_email}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Recuperar contraseña: verificar código",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{auth_url}}/verify-code",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "verify-code"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"User\": {\n      \"email\": \"{{user_email}}\",\n      \"code\": \"{{verification_code}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Recuperar contraseña: nueva contraseña",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{auth_url}}/set-password",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "set-password"
+              ]
+            },
+            "description": "Exige el mismo código; queda invalidado al cambiar la contraseña.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"User\": {\n      \"email\": \"{{user_email}}\",\n      \"password\": \"{{password}}\",\n      \"code\": \"{{verification_code}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Carrito (checkout)",
+      "description": "Siempre el carrito del usuario del token (`/carts/me`).",
+      "item": [
+        {
+          "name": "Agregar producto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{checkout_url}}/carts/me/items",
+              "host": [
+                "{{checkout_url}}"
+              ],
+              "path": [
+                "carts",
+                "me",
+                "items"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Cart\": {\n      \"productId\": \"{{product_id}}\",\n      \"name\": \"{{product_name}}\",\n      \"price\": {{product_price}},\n      \"quantity\": 1,\n      \"storeId\": \"{{store_id}}\",\n      \"image\": \"{{product_image}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cambiar cantidad",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{checkout_url}}/carts/me/items/{{product_id}}",
+              "host": [
+                "{{checkout_url}}"
+              ],
+              "path": [
+                "carts",
+                "me",
+                "items",
+                "{{product_id}}"
+              ]
+            },
+            "description": "quantity = 0 elimina el producto del carrito.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Cart\": {\n      \"quantity\": 2\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ver mi carrito",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const d = pm.response.json().Data || {};",
+                  "pm.test('Total en CLP', () => pm.expect(d.cart.total).to.be.a('number'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{checkout_url}}/carts/me",
+              "host": [
+                "{{checkout_url}}"
+              ],
+              "path": [
+                "carts",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Quitar producto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{checkout_url}}/carts/me/items/{{product_id}}",
+              "host": [
+                "{{checkout_url}}"
+              ],
+              "path": [
+                "carts",
+                "me",
+                "items",
+                "{{product_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Vaciar carrito",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 400 o 404', () => pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{checkout_url}}/carts/me",
+              "host": [
+                "{{checkout_url}}"
+              ],
+              "path": [
+                "carts",
+                "me"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Repartidores (courier)",
+      "description": "Alta y presencia de repartidores (backend-order). Guarda `courier_id`.",
+      "item": [
+        {
+          "name": "Crear repartidor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const d = pm.response.json().Data || {};",
+                  "pm.environment.set('courier_id', (d.courier && (d.courier.courierId || d.courier.id || (typeof d.courier === 'string' ? d.courier : undefined))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{courier_url}}",
+              "host": [
+                "{{courier_url}}"
+              ],
+              "path": []
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Courier\": {\n      \"name\": \"Repartidor Postman\",\n      \"phone\": \"+56900000001\",\n      \"vehicleType\": \"MOTO\",\n      \"status\": \"AVAILABLE\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reportar ubicación (presencia)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{courier_url}}/{{courier_id}}/presence",
+              "host": [
+                "{{courier_url}}"
+              ],
+              "path": [
+                "{{courier_id}}",
+                "presence"
+              ]
+            },
+            "description": "Para la asignación automática el repartidor debe reportar hace < 120 s y estar a < 10 km de la tienda (Lima en los datos de prueba).",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Courier\": {\n      \"status\": \"AVAILABLE\",\n      \"location\": {\n        \"lat\": -11.98,\n        \"lng\": -77.082\n      }\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Repartidor por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{courier_url}}/{{courier_id}}",
+              "host": [
+                "{{courier_url}}"
+              ],
+              "path": [
+                "{{courier_id}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Listar repartidores",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{courier_url}}?limit=20",
+              "host": [
+                "{{courier_url}}"
+              ],
+              "path": [],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Órdenes (order)",
+      "description": "Montos en CLP calculados por el servidor con precios del catálogo y USD congelado al crear la orden. Guarda `order_id`, `order_total_usd` y `order_total_clp`.",
+      "item": [
+        {
+          "name": "Tarifa de envío y tipo de cambio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{order_url}}/pricing",
+              "host": [
+                "{{order_url}}"
+              ],
+              "path": [
+                "pricing"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear orden",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const d = pm.response.json().Data || {};",
+                  "const o = d.order || {};",
+                  "pm.environment.set('order_id', o.orderId);",
+                  "pm.environment.set('order_total_usd', o.totalUsd);",
+                  "pm.environment.set('order_total_clp', o.totalClp);",
+                  "pm.test('Totales CLP y USD', () => { pm.expect(o.totalClp).to.be.a('number'); pm.expect(o.totalUsd).to.be.a('number'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{order_url}}",
+              "host": [
+                "{{order_url}}"
+              ],
+              "path": []
+            },
+            "description": "Solo productId y quantity: nombre, precio y usuario los resuelve el backend.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Order\": {\n      \"storeId\": \"{{store_id}}\",\n      \"deliveryLat\": -11.97,\n      \"deliveryLng\": -77.07,\n      \"items\": [\n        {\n          \"productId\": \"{{product_id}}\",\n          \"quantity\": 2\n        }\n      ]\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Mis órdenes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{order_url}}?limit=10",
+              "host": [
+                "{{order_url}}"
+              ],
+              "path": [],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Orden por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{order_url}}/{{order_id}}",
+              "host": [
+                "{{order_url}}"
+              ],
+              "path": [
+                "{{order_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Estado de la entrega",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const d = pm.response.json().Data || {};",
+                  "pm.environment.set('order_status_delivery', d.order && d.order.statusDelivery);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{order_url}}/{{order_id}}/status-delivery",
+              "host": [
+                "{{order_url}}"
+              ],
+              "path": [
+                "{{order_id}}",
+                "status-delivery"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Pagos (payment)",
+      "description": "PayPal (sandbox en dev). El monto sale de la orden; el cliente no lo envía.",
+      "item": [
+        {
+          "name": "Crear pago PayPal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const d = pm.response.json().Data || {};",
+                  "const p = d.payment || {};",
+                  "pm.environment.set('payment_id', p.paymentId);",
+                  "pm.environment.set('paypal_token', p.providerOrderId);",
+                  "pm.environment.set('paypal_approve_url', p.redirectUrl);",
+                  "console.log('Aprobar en PayPal:', p.redirectUrl);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_url}}/paypal",
+              "host": [
+                "{{payment_url}}"
+              ],
+              "path": [
+                "paypal"
+              ]
+            },
+            "description": "Abre `paypal_approve_url` en el navegador e inicia sesión con una cuenta compradora sandbox. PayPal redirige a successUrl con `token` y `PayerID`: copia PayerID en la variable `paypal_payer_id` y ejecuta \"Confirmar pago\".",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Payment\": {\n      \"orderId\": \"{{order_id}}\",\n      \"provider\": \"Paypal\",\n      \"successUrl\": \"{{paypal_success_url}}\",\n      \"cancelUrl\": \"{{paypal_cancel_url}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Confirmar pago (tras aprobar en PayPal)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_url}}/confirm",
+              "host": [
+                "{{payment_url}}"
+              ],
+              "path": [
+                "confirm"
+              ]
+            },
+            "description": "Captura el pago y publica PaymentApproved: order marca la orden como PAID y asigna repartidor. Es idempotente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Payment\": {\n      \"token\": \"{{paypal_token}}\",\n      \"PayerID\": \"{{paypal_payer_id}}\",\n      \"provider\": \"Paypal\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Dev: simular pago aprobado (LocalStack)",
+      "description": "Solo en el environment **dev**. Publica `PaymentApproved` directamente en EventBridge de LocalStack (firma AWS SigV4 con credenciales `test`), como si PayPal hubiera capturado el pago. Sirve para probar la asignación de repartidor y el tracking sin aprobar en PayPal.",
+      "item": [
+        {
+          "name": "Publicar PaymentApproved en EventBridge",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('Sin entradas fallidas', () => pm.expect(pm.response.json().FailedEntryCount).to.eql(0));"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.environment.get('localstack_url')) throw new Error('Solo disponible en el environment dev (LocalStack)');",
+                  "const detail = {",
+                  "  type: 'PaymentApproved',",
+                  "  payload: {",
+                  "    paymentId: pm.environment.get('payment_id') || `sim-${Date.now()}`,",
+                  "    orderId: pm.environment.get('order_id'),",
+                  "    userId: pm.environment.get('user_id'),",
+                  "    provider: 'PAYPAL',",
+                  "    amountUsd: Number(pm.environment.get('order_total_usd')),",
+                  "    amountClp: Number(pm.environment.get('order_total_clp')),",
+                  "  },",
+                  "};",
+                  "pm.request.body.update(JSON.stringify({ Entries: [{ EventBusName: 'foodstore-events', Source: 'payment-service', DetailType: 'PaymentApproved', Detail: JSON.stringify(detail) }] }));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-amz-json-1.1"
+              },
+              {
+                "key": "X-Amz-Target",
+                "value": "AWSEvents.PutEvents"
+              }
+            ],
+            "url": {
+              "raw": "{{localstack_url}}/",
+              "host": [
+                "{{localstack_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "auth": {
+              "type": "awsv4",
+              "awsv4": [
+                {
+                  "key": "accessKey",
+                  "value": "test",
+                  "type": "string"
+                },
+                {
+                  "key": "secretKey",
+                  "value": "test",
+                  "type": "string"
+                },
+                {
+                  "key": "region",
+                  "value": "us-east-1",
+                  "type": "string"
+                },
+                {
+                  "key": "service",
+                  "value": "events",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Esperar asignación de repartidor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const d = pm.response.json().Data || {};",
+                  "const s = d.order && d.order.statusDelivery;",
+                  "pm.environment.set('order_status_delivery', s);",
+                  "const tries = Number(pm.environment.get('assign_tries') || 0);",
+                  "if (s !== 'ASSIGNED' && tries < 10) {",
+                  "  pm.environment.set('assign_tries', tries + 1);",
+                  "  if (pm.execution && pm.execution.setNextRequest) pm.execution.setNextRequest(pm.info.requestName); else postman.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "  pm.environment.unset('assign_tries');",
+                  "  pm.test('Repartidor asignado', () => pm.expect(s).to.eql('ASSIGNED'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Pequeña espera para que el poller de SQS procese el evento",
+                  "setTimeout(() => {}, 3000);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{order_url}}/{{order_id}}/status-delivery",
+              "host": [
+                "{{order_url}}"
+              ],
+              "path": [
+                "{{order_id}}",
+                "status-delivery"
+              ]
+            },
+            "description": "order consume el evento desde SQS y asigna al repartidor disponible más cercano. Reintenta hasta ver ASSIGNED."
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Entrega",
+      "description": "El cliente confirma que recibió el pedido.",
+      "item": [
+        {
+          "name": "Confirmar entrega",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{order_url}}/{{order_id}}/confirm-delivery",
+              "host": [
+                "{{order_url}}"
+              ],
+              "path": [
+                "{{order_id}}",
+                "confirm-delivery"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Estado final",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const d = pm.response.json().Data || {};",
+                  "pm.test('Entregado', () => pm.expect(d.order.statusDelivery).to.eql('DELIVERED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{order_url}}/{{order_id}}/status-delivery",
+              "host": [
+                "{{order_url}}"
+              ],
+              "path": [
+                "{{order_id}}",
+                "status-delivery"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Administración (X-Internal-Api-Key)",
+      "description": "Endpoints de operación protegidos con la clave interna (`internal_api_key`, la misma `INTERNAL_API_KEY` de los servicios) hasta que exista la plataforma de administración con roles.",
+      "item": [
+        {
+          "name": "Crear categoría",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const d = pm.response.json().Data || {};",
+                  "pm.environment.set('category_id', (d.category && (d.category.categoryId || d.category.id || (typeof d.category === 'string' ? d.category : undefined))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internal_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{shop_url}}/categories",
+              "host": [
+                "{{shop_url}}"
+              ],
+              "path": [
+                "categories"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Category\": {\n      \"name\": \"Postres\",\n      \"description\": \"Postres caseros\",\n      \"image\": \"https://images.unsplash.com/photo-1551024601-bec78aea704b?w=600\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear producto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "const d = pm.response.json().Data || {};",
+                  "pm.environment.set('admin_product_id', (d.product && (d.product.productId || d.product.id || (typeof d.product === 'string' ? d.product : undefined))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internal_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{shop_url}}/products",
+              "host": [
+                "{{shop_url}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Product\": {\n      \"name\": \"Torta de chocolate\",\n      \"description\": \"Porción individual\",\n      \"categoryId\": \"{{category_id}}\",\n      \"storeId\": \"{{store_id}}\",\n      \"price\": 3990,\n      \"currency\": \"CLP\",\n      \"stock\": 20,\n      \"image\": \"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600\",\n      \"ingredients\": []\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar usuarios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internal_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{auth_url}}/users?limit=10",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Listar preferencias",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internal_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{auth_url}}/preferences?limit=10",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "preferences"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Asignar repartidor manualmente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201 o 400 o 409', () => pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 409]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internal_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{order_url}}/{{order_id}}/assign/{{courier_id}}",
+              "host": [
+                "{{order_url}}"
+              ],
+              "path": [
+                "{{order_id}}",
+                "assign",
+                "{{courier_id}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Cambiar estado de entrega",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 400', () => pm.expect(pm.response.code).to.be.oneOf([200, 400]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internal_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{order_url}}/{{order_id}}/status",
+              "host": [
+                "{{order_url}}"
+              ],
+              "path": [
+                "{{order_id}}",
+                "status"
+              ]
+            },
+            "description": "statusDelivery: ASSIGNED | PREPARING | PICKED_UP | ON_THE_WAY | DELIVERED | CANCELED",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Order\": {\n      \"statusDelivery\": \"PICKED_UP\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Registrar pago manual",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internal_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_url}}",
+              "host": [
+                "{{payment_url}}"
+              ],
+              "path": []
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Payment\": {\n      \"orderId\": \"{{order_id}}\",\n      \"amount\": 10,\n      \"currency\": \"USD\",\n      \"provider\": \"Paypal\",\n      \"providerOrderId\": \"manual-{{$timestamp}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar pagos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internal_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_url}}?limit=10",
+              "host": [
+                "{{payment_url}}"
+              ],
+              "path": [],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Notificaciones (solo dev)",
+      "description": "backend-notification no expone HTTP en AWS (es una Lambda disparada por SQS). En local este endpoint simula el mensaje SQS para probar el envío por SES (LocalStack).",
+      "item": [
+        {
+          "name": "Simular correo (evento SQS)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200 o 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{notification_url}}/send-email",
+              "host": [
+                "{{notification_url}}"
+              ],
+              "path": [
+                "send-email"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"detail\": {\n    \"name\": \"EmailVerificationRequested\",\n    \"payload\": {\n      \"email\": \"{{user_email}}\",\n      \"subject\": \"Prueba desde Postman\",\n      \"message\": \"Hola desde FoodStore\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Cerrar sesión",
+      "description": "Revoca toda la sesión en el servidor.",
+      "item": [
+        {
+          "name": "Cerrar sesión (logout)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.environment.unset('access_token');",
+                  "pm.environment.unset('refresh_token');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{auth_url}}/logout",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Auth\": {\n      \"refreshToken\": \"{{refresh_token}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Refresh tras logout (debe fallar)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.expect(pm.response.code).to.be.oneOf([401]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{auth_url}}/refresh",
+              "host": [
+                "{{auth_url}}"
+              ],
+              "path": [
+                "refresh"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Data\": {\n    \"Auth\": {\n      \"refreshToken\": \"{{refresh_token}}\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
