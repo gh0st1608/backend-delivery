@@ -538,7 +538,7 @@ El contenedor **ngrok** expone el gateway en una URL pública (panel de inspecci
 
 ## Configuración y variables de entorno
 
-Cada servicio lee su propio archivo `.env` (ver `.env.example`). **No se deben versionar los archivos `.env`.**
+Cada servicio carga `.env.${NODE_ENV}`. Sin `NODE_ENV` carga **`.env.local`** (LocalStack); con `NODE_ENV=production`, **`.env.production`** (AWS). Las plantillas `.env.local.example` y `.env.production.example` sí se versionan; los archivos reales están en `.gitignore`. En Lambda las variables las define Terraform.
 
 | Variable | Servicios | Descripción |
 |---|---|---|
@@ -548,9 +548,13 @@ Cada servicio lee su propio archivo `.env` (ver `.env.example`). **No se deben v
 | `AWS_LOCAL` | todos excepto notification | Si es `true`, usa credenciales explícitas (`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`); si no, la cadena de credenciales por defecto (rol IAM de la Lambda o `~/.aws`). |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | todos excepto notification | Credenciales para desarrollo local. |
 | `EVENT_BUS_NAME` | auth, checkout, order, payment | Nombre del bus de EventBridge. |
-| `JWT_SECRET`, `JWT_REFRESH_SECRET` | auth, payment | Secretos de firma de los JWT. |
+| `JWT_PRIVATE_KEY` | auth | Clave privada RS256 para firmar access tokens (solo auth). |
+| `JWT_PUBLIC_KEY`, `JWT_ISSUER`, `JWT_AUDIENCE` | todos excepto notification | Verificación de los access tokens. |
+| `INTERNAL_API_KEY` | todos excepto notification | Clave de los endpoints de administración (`X-Internal-Api-Key`). |
+| `CORS_ORIGINS` | todos excepto notification | Orígenes web permitidos, separados por coma. |
+| `AWS_ENDPOINT_URL` | todos | Endpoint de AWS. En local apunta a LocalStack (`http://localhost:4566`). |
 | `CART_TABLE` | checkout | Nombre de la tabla del carrito (por defecto `Carts`). |
-| `SHOP_MS_BASE_URL` | order | URL base de backend-shop, incluyendo el prefijo `/shop` (p. ej. `http://shop:3002/shop`). |
+| `SHOP_MS_BASE_URL` | order | URL base de backend-shop, incluyendo el prefijo `/shop` (p. ej. `http://localhost:3002/shop`). |
 | `COURIER_MAX_LOCATION_AGE_SECONDS` | order | Antigüedad máxima de la ubicación de un repartidor para ser candidato (por defecto `120`). |
 | `COURIER_AUTO_ASSIGN_MAX_CANDIDATES` | order | Número máximo de candidatos evaluados (por defecto `25`). |
 | `SIM_*` | order | Parámetros del simulador de repartidor. |
@@ -562,44 +566,32 @@ Cada servicio lee su propio archivo `.env` (ver `.env.example`). **No se deben v
 
 ## Ejecución local
 
-### Requisitos previos
+### Opción 1 — Todo con un comando (recomendada)
 
-- Node.js 20+ y npm
-- Docker y Docker Compose
-- Cuenta de AWS con acceso a DynamoDB, EventBridge, SQS y SES (o credenciales en `~/.aws`)
-- Tablas DynamoDB creadas con los nombres e índices indicados en [Persistencia](#persistencia-dynamodb)
-- Credenciales de PayPal sandbox (para `backend-payment`)
-
-### Opción 1 — Docker Compose (recomendada)
-
-1. Crear el archivo `.env` de cada servicio a partir de su `.env.example`.
-2. Verificar que las rutas `build.context` y `env_file` de `docker-compose.yaml` apunten a las carpetas de los servicios (están dentro de este directorio: `./backend-<servicio>`).
-3. Definir el token de ngrok como variable de entorno (`NGROK_AUTHTOKEN`) en lugar de dejarlo en el archivo.
-4. Levantar el entorno:
+Levanta LocalStack, la infraestructura (Terraform), los 6 servicios, datos de prueba, un repartidor simulado y el frontend. No necesita una cuenta de AWS.
 
 ```bash
-docker compose up --build
+cd infra-delivery/local      # worktree de la rama infra
+./up.sh                      # app web en http://localhost:8081  (--lan: Expo Go en el celular)
+./down.sh                    # detener
 ```
 
-| Servicio | URL |
-|---|---|
-| API Gateway | http://localhost:8080 |
-| ngrok (inspector) | http://localhost:4040 |
-| auth | http://localhost:3000 |
-| shop | http://localhost:3002 |
-| checkout | http://localhost:3003 |
-| order | http://localhost:3004 |
-| payment | http://localhost:3005 |
-
-> `backend-notification` no forma parte del Compose, ya que está pensado para ejecutarse como Lambda disparada por SQS. Puede levantarse por separado con `npm run start:dev`.
+Requisitos, opciones y cómo probar la app: ver el README de la rama `infra` ([infra-delivery/README.md](infra-delivery/README.md), sección *Levantar todo en local*).
 
 ### Opción 2 — Ejecutar un servicio de forma aislada
 
+Con LocalStack y la infraestructura ya levantados (`./up.sh --no-front` o `terraform -chdir=infra-delivery/environments/dev apply -var enable_lambdas=false`):
+
 ```bash
 cd backend-order
+cp .env.local.example .env.local   # completar secretos (JWT, INTERNAL_API_KEY; PayPal en payment)
 npm install
-npm run start:dev       # modo desarrollo con recarga automática
+npm run start:dev                  # carga .env.local
 ```
+
+> Si tu terminal tiene `AWS_PROFILE` definido, quítalo antes de arrancar (`unset AWS_PROFILE`), así el SDK no usa credenciales reales.
+
+> `docker-compose.yaml` y `nginx.conf` de la raíz son el gateway local anterior. Sus rutas de `build.context` y `env_file` no coinciden con la estructura actual de worktrees ni con los archivos `.env.local`. Para desarrollo usa la opción 1.
 
 ### Scripts comunes
 
