@@ -7,6 +7,8 @@ import {
   IsArray,
   IsInt,
   Min,
+  IsUrl,
+  MaxLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { IngredientDto } from './create-ingredient.dto';
@@ -27,6 +29,11 @@ export class ProductPayloadDto {
   @IsString()
   @IsNotEmpty({ message: 'La locacion del producto no puede estar vacio' })
   storeId: string;
+
+  @IsOptional()
+  @IsUrl({ protocols: ['https', 'http'], require_protocol: true }, { message: 'La imagen del producto debe ser una URL válida' })
+  @MaxLength(2048)
+  image?: string;
 
   // Precio base en pesos chilenos (CLP no usa decimales)
   @IsInt({ message: 'El precio debe ser un entero en CLP' })

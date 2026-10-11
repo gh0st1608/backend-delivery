@@ -16,7 +16,7 @@ export class CreateProductUseCase {
 
   async execute(createProductDto: CreateProductDto): Promise<CreateResult> {
     try {
-      const { name, description, categoryId, storeId, price, stock, ingredients } =
+      const { name, description, categoryId, storeId, price, stock, image, ingredients } =
         createProductDto.Product;
       const product = Product.create({
         name,
@@ -25,6 +25,7 @@ export class CreateProductUseCase {
         storeId,
         price,
         stock,
+        image,
         ingredients,
       });
 
