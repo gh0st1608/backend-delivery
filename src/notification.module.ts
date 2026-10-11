@@ -10,7 +10,8 @@ import { NotificationController } from './infrastructure/controller/sqs.controll
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: `${process.env.NODE_ENV || ''}.env`,
+      // .env.local por defecto; .env.production con NODE_ENV=production
+      envFilePath: `.env.${process.env.NODE_ENV || 'local'}`,
       isGlobal: true,
     }),
   ],

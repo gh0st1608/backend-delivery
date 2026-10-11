@@ -2,3 +2,6 @@ api/design/node_modules/
 node_modules/
 .build/
 .env
+# Variables por entorno: solo se versionan las plantillas
+.env.*
+!.env.*.example
