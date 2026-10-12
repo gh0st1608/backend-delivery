@@ -143,6 +143,28 @@ En el frontend Expo funciona igual: `expo start` usa `.env.local` y `expo export
 3. `PaymentApproved` simulado → SQS → orden PAID → repartidor asignado → entrega confirmada.
 4. Rotación del refresh token y revocación de la sesión cuando se reusa un token rotado.
 
+### Simulador del conductor (tracking en vivo)
+
+Tras pagar, la pantalla del cliente queda en "obteniendo ubicación": avanza al
+mapa en vivo solo cuando el **repartidor** emite su ubicación por el socket.
+En este proyecto aún no hay app del conductor, así que `driver-sim.js` hace de
+ella (solo en local): avanza los estados y mueve la ubicación del local al
+cliente.
+
+```bash
+# Repartir una orden concreta (o la más reciente pagada con --order latest)
+node local/scripts/driver-sim.js --order <orderId> --deliver
+```
+
+Hace, para la orden indicada: `PREPARING → PICKED_UP → ON_THE_WAY` (emitiendo
+la ubicación mientras se mueve del local al cliente) `→ DELIVERED`. Sin
+`--deliver` se detiene al llegar, para que el cliente pulse "Confirm Delivery"
+en la app. Lee los datos de la orden desde LocalStack (no necesita el token del
+cliente) y se autentica en el socket con la `INTERNAL_API_KEY`.
+
+Para verlo en la app: paga un pedido, abre el tracking y en otra terminal corre
+`driver-sim.js --order latest`; la pantalla de espera pasará al mapa en vivo.
+
 ### Notas
 
 - **Datos efímeros:** LocalStack Community no persiste datos. Tras `./down.sh --all`, o si se reinicia el contenedor, el siguiente `./up.sh` recrea la infraestructura y los datos de prueba.
