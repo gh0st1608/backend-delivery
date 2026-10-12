@@ -28,6 +28,9 @@ async function sendPresence() {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
+      ...(process.env.SIM_INTERNAL_API_KEY
+        ? { 'x-internal-api-key': process.env.SIM_INTERNAL_API_KEY }
+        : {}),
     },
     body: JSON.stringify({
       Courier: {

@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'crypto';
 import {
   WebSocketGateway,
   SubscribeMessage,
@@ -27,13 +28,18 @@ export class OrderTrackingGateway extends SocketConfig {
   }
 
   // 🛵 Courier envía ubicación
+  // Lo emite el dispositivo del repartidor (sin login de repartidor aún): se
+  // exige la clave interna en el handshake, igual que los endpoints /courier.
   @SubscribeMessage('order.tracking.update')
   async handleOrderLocation(
     @MessageBody('Data') dto: UpdateCourierLocationDto,
     @ConnectedSocket() client: Socket,
   ) {
+    if (!this.hasInternalKey(client)) {
+      return { status: 'error', message: 'No autorizado' };
+    }
+
     this.logger.log(`📍 Tracking update from ${client.id}`);
-    console.log('dto',dto)
     await this.updateCourierLocationUseCase.execute(dto);
 
     return { status: 'ok' };
@@ -84,5 +90,21 @@ export class OrderTrackingGateway extends SocketConfig {
     } catch {
       return null;
     }
+  }
+
+  // Clave interna en el handshake: auth.apiKey (app) o header x-internal-api-key
+  // (Postman). Comparación en tiempo constante.
+  private hasInternalKey(client: Socket): boolean {
+    const expected = process.env.INTERNAL_API_KEY ?? '';
+    const received = String(
+      client.handshake.auth?.apiKey ??
+        client.handshake.headers['x-internal-api-key'] ??
+        '',
+    );
+    return (
+      expected.length > 0 &&
+      received.length === expected.length &&
+      timingSafeEqual(Buffer.from(received), Buffer.from(expected))
+    );
   }
 }

@@ -6,6 +6,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateCourierUseCase } from '../../application/use-cases/create-courier.usecase';
 import { CreateCourierDto } from '../../application/dto/request/create-courier.dto';
@@ -17,7 +18,11 @@ import { Entities } from '../../domain/constants/enums';
 import { GetCouriersUseCase } from '../../application/use-cases/get-couriers.usecase';
 import { UpdateCourierPresenceUseCase } from '../../application/use-cases/update-courier-presence.usecase';
 import { UpdateCourierPresenceDto } from '../../application/dto/request/update-courier-presence.dto';
+import { InternalApiKeyGuard } from '../security/internal-api-key.guard';
 
+// Sin identidad de repartidor todavía: estos endpoints son operacionales
+// (dispositivo del repartidor / backoffice) y se protegen con la clave interna.
+@UseGuards(InternalApiKeyGuard)
 @Controller('courier')
 export class CourierController {
   constructor(
