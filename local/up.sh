@@ -152,11 +152,14 @@ if [ "$n" = 1 ]; then
   info "simulador de repartidor ya está corriendo"
 else
   [ "$n" != 0 ] && proc_stop courier-sim >/dev/null
+  # Los endpoints /courier exigen la clave interna: se toma del .env.local de order
+  sim_key=$(grep -E '^INTERNAL_API_KEY=' "$BACKEND_DIR/backend-order/.env.local" | head -1 | cut -d= -f2- | tr -d "\"' \r")
   # Recorrido cerca de la tienda de prueba (Lima): debe estar a < 10 km y reportar cada < 120 s
   spawn courier-sim "$BACKEND_DIR/backend-order" env \
     SIM_BASE_URL=http://localhost:3004 \
     SIM_COURIER_ID="$(cat "$RUN_DIR/courier-id")" \
     SIM_STATUS=AVAILABLE \
+    SIM_INTERNAL_API_KEY="$sim_key" \
     SIM_POINTS="-11.97900,-77.08100;-11.97950,-77.08200;-11.98000,-77.08250;-11.98050,-77.08300" \
     node scripts/courier-presence-simulator.js
   info "simulador de repartidor iniciado"

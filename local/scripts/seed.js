@@ -80,12 +80,12 @@ const CATALOG = [
     }
   }
 
-  const couriers = (await api('GET', `${COURIER}?limit=100`))?.items ?? [];
+  const couriers = (await api('GET', `${COURIER}?limit=100`, undefined, admin))?.items ?? [];
   let courierId = couriers.find((c) => c.name === 'Repartidor Demo')?.courierId;
   if (!courierId) {
     const res = await api('POST', COURIER, {
       Courier: { name: 'Repartidor Demo', phone: '+56900000000', vehicleType: 'MOTO', status: 'AVAILABLE' },
-    });
+    }, admin);
     courierId = res?.courier?.courierId;
     created++;
   }
