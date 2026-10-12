@@ -30,6 +30,8 @@ import { LogoutUseCase } from './application/logout.application';
 import { RefreshTokenRepositorySymbol } from './domain/repository/refresh-token.repository';
 import { RefreshTokenRepositoryImpl } from './infrastructure/repository/refresh-token.repository.impl';
 import { InternalApiKeyGuard } from './infrastructure/internal-api-key.guard';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -39,9 +41,14 @@ import { InternalApiKeyGuard } from './infrastructure/internal-api-key.guard';
       envFilePath: `.env.${process.env.NODE_ENV || 'local'}`,
       isGlobal: true,
     }),
+    // Límite por defecto de peticiones por IP (anti fuerza bruta / abuso).
+    // Los endpoints sensibles usan además un @Throttle más estricto.
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
   ],
   controllers: [AuthController],
   providers: [
+    // Guard global: aplica el rate limiting a todas las rutas
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     AccessTokenStrategy,
     LoginUseCase,
     RegisterUseCase,

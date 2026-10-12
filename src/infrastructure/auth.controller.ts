@@ -10,6 +10,7 @@ import {
   Res,
   HttpCode,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { Request, Response } from 'express';
 import { LoginUseCase } from '../application/login.application';
 import { LoginDto } from '../application/dto/request/login.dto';
@@ -59,6 +60,8 @@ export class AuthController {
     private readonly logoutUseCase: LogoutUseCase,
   ) {}
 
+  // Endpoint sensible: límite estricto por IP (anti fuerza bruta)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('login')
   @HttpCode(HttpStatusResponse.OK)
   async login(
@@ -70,6 +73,8 @@ export class AuthController {
     return this.withRefreshTransport(result, req, res);
   }
 
+  // Endpoint sensible: límite estricto por IP (anti fuerza bruta)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('register')
   async register(
     @Body() body: RegisterDto,
@@ -81,6 +86,8 @@ export class AuthController {
   }
 
   // Rotación del refresh token. No requiere access token (puede estar vencido).
+  // Endpoint sensible: límite estricto por IP (anti fuerza bruta)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('refresh')
   @HttpCode(HttpStatusResponse.OK)
   async refresh(
@@ -113,16 +120,22 @@ export class AuthController {
     return result;
   }
 
+  // Endpoint sensible: límite estricto por IP (anti fuerza bruta)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('verify-email')
   async verifyEmail(@Body() body: VerifyEmailDto) {
     return this.verifyEmailUseCase.execute(body);
   }
 
+  // Endpoint sensible: límite estricto por IP (anti fuerza bruta)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('verify-code')
   async verifyCode(@Body() body: VerifyCodeDto) {
     return this.verifyCodeUseCase.execute(body);
   }
 
+  // Endpoint sensible: límite estricto por IP (anti fuerza bruta)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('set-password')
   async setPassword(@Body() body: SetPasswordDto) {
     return this.setPasswordUseCase.execute(body);
