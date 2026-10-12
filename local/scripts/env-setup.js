@@ -98,9 +98,6 @@ if (frontendDir && fs.existsSync(frontendDir)) {
   text = setValue(text, 'EXPO_PUBLIC_SOCKET_URL', `http://${host}:${PORTS.order}`);
   fs.writeFileSync(file, text);
   console.log(`  frontend: URLs apuntando a ${host}`);
-  if (!getValue(text, 'EXPO_PUBLIC_API_KEY_GOOGLE')) {
-    warnings.push('frontend/.env.local no tiene EXPO_PUBLIC_API_KEY_GOOGLE: el mapa y la geocodificación del checkout no funcionarán.');
-  }
 }
 
 for (const w of warnings) console.log(`  ⚠ ${w}`);
