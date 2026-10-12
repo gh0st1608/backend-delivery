@@ -770,7 +770,7 @@
     },
     {
       "name": "4. Repartidores (courier)",
-      "description": "Alta y presencia de repartidores (backend-order). Guarda `courier_id`.",
+      "description": "Alta y presencia de repartidores (backend-order). Protegidos con `X-Internal-Api-Key` (aún no hay login de repartidor). Guarda `courier_id`.",
       "item": [
         {
           "name": "Crear repartidor",
@@ -793,6 +793,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internal_api_key}}"
               }
             ],
             "url": {
@@ -835,6 +839,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internal_api_key}}"
               }
             ],
             "url": {
@@ -877,7 +885,12 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internal_api_key}}"
+              }
+            ],
             "url": {
               "raw": "{{courier_url}}/{{courier_id}}",
               "host": [
@@ -907,7 +920,12 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internal_api_key}}"
+              }
+            ],
             "url": {
               "raw": "{{courier_url}}?limit=20",
               "host": [

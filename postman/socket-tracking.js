@@ -26,8 +26,14 @@ const args = Object.fromEntries(
 const url = args.url || 'http://localhost:3004';
 const { token, order: orderId } = args;
 const authMode = args['auth-mode'] || 'auth';
+// Emitir ubicaciones (order.tracking.update) exige la clave interna
+const internalKey = args['internal-key'] || process.env.INTERNAL_API_KEY;
 if (!token || !orderId) {
   console.error('Faltan --token y --order (los guarda la colección Postman en access_token y order_id).');
+  process.exit(1);
+}
+if (args['simulate-courier'] && !internalKey) {
+  console.error('--simulate-courier necesita --internal-key <INTERNAL_API_KEY> (o la variable de entorno).');
   process.exit(1);
 }
 
@@ -38,8 +44,8 @@ const { io } = require(require.resolve('socket.io-client', {
 const socket = io(url, {
   transports: ['websocket'],
   ...(authMode === 'header'
-    ? { extraHeaders: { Authorization: `Bearer ${token}` } }
-    : { auth: { token } }),
+    ? { extraHeaders: { Authorization: `Bearer ${token}`, ...(internalKey ? { 'x-internal-api-key': internalKey } : {}) } }
+    : { auth: { token, ...(internalKey ? { apiKey: internalKey } : {}) } }),
 });
 
 const now = () => new Date().toLocaleTimeString();

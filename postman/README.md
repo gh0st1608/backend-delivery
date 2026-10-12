@@ -69,14 +69,14 @@ Postman no exporta requests Socket.IO en colecciones v2.1, así que la request s
 ### Opción A — Postman
 
 1. **New → Socket.IO**. URL: `{{socket_url}}` (en dev, `http://localhost:3004`).
-2. Pestaña **Headers**: `Authorization` = `Bearer {{access_token}}`.
+2. Pestaña **Headers**: `Authorization` = `Bearer {{access_token}}`. Para emitir `order.tracking.update` (rol repartidor) añade además `x-internal-api-key` = `{{internal_api_key}}`; solo escuchar y hacer `join` no lo requiere.
 3. Pestaña **Events**: activa la escucha de `order.courier.assigned`, `order.tracking.updated` y `on-error`.
 4. **Connect** y envía, con **Acknowledgement** activado:
 
 | Evento a emitir | Payload | Respuesta (ack) |
 |---|---|---|
 | `order.tracking.join` | `{ "orderId": "{{order_id}}" }` | `{ "status": "ok" }`, o `{ "status": "error" }` si el token es inválido o la orden no es tuya |
-| `order.tracking.update` | `{ "Data": { "Courier": { "orderId": "{{order_id}}", "courierId": "{{courier_id}}", "location": { "lat": -11.975, "lng": -77.076 } } } }` | `{ "status": "ok" }` |
+| `order.tracking.update` ⚠️ | `{ "Data": { "Courier": { "orderId": "{{order_id}}", "courierId": "{{courier_id}}", "location": { "lat": -11.975, "lng": -77.076 } } } }` | `{ "status": "ok" }`, o `error` sin la clave interna |
 | `order.tracking.leave` | `{ "orderId": "{{order_id}}" }` | — |
 
 5. Con el socket unido, ejecuta **7. Dev: simular pago aprobado**: llegará `order.courier.assigned`. Cada `order.tracking.update` llega a la sala como `order.tracking.updated`.
@@ -89,8 +89,8 @@ Usa `socket.io-client` de `frontend-delivery/node_modules`:
 # Escucha los eventos de una orden (token y order_id: los guarda la colección)
 node postman/socket-tracking.js --token <access_token> --order <order_id>
 
-# Además simula al repartidor enviando su ubicación cada 3 s
-node postman/socket-tracking.js --token <access_token> --order <order_id> --simulate-courier <courier_id>
+# Además simula al repartidor enviando su ubicación cada 3 s (requiere la clave interna)
+node postman/socket-tracking.js --token <access_token> --order <order_id> --simulate-courier <courier_id> --internal-key <INTERNAL_API_KEY>
 
 # Autenticando por header, como Postman
 node postman/socket-tracking.js --token <access_token> --order <order_id> --auth-mode header

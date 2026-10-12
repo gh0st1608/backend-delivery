@@ -151,19 +151,19 @@ const cart = folder('3. Carrito (checkout)', 'Siempre el carrito del usuario del
   req('Vaciar carrito', 'DELETE', 'checkout_url', '/carts/me', { codes: [200, 400, 404] }),
 ]);
 
-const courier = folder('4. Repartidores (courier)', 'Alta y presencia de repartidores (backend-order). Guarda `courier_id`.', [
+const courier = folder('4. Repartidores (courier)', 'Alta y presencia de repartidores (backend-order). Protegidos con `X-Internal-Api-Key` (aún no hay login de repartidor). Guarda `courier_id`.', [
   req('Crear repartidor', 'POST', 'courier_url', '', {
-    auth: 'none', codes: [200, 201],
+    auth: 'admin', codes: [200, 201],
     body: { Data: { Courier: { name: 'Repartidor Postman', phone: '+56900000001', vehicleType: 'MOTO', status: 'AVAILABLE' } } },
     tests: [data, `pm.environment.set('courier_id', ${idOf('d.courier', 'courierId')});`],
   }),
   req('Reportar ubicación (presencia)', 'PATCH', 'courier_url', '/{{courier_id}}/presence', {
-    auth: 'none', codes: [200],
+    auth: 'admin', codes: [200],
     description: 'Para la asignación automática el repartidor debe reportar hace < 120 s y estar a < 10 km de la tienda (Lima en los datos de prueba).',
     body: { Data: { Courier: { status: 'AVAILABLE', location: { lat: -11.98, lng: -77.082 } } } },
   }),
-  req('Repartidor por id', 'GET', 'courier_url', '/{{courier_id}}', { auth: 'none', codes: [200] }),
-  req('Listar repartidores', 'GET', 'courier_url', '', { auth: 'none', codes: [200], query: [{ key: 'limit', value: '20' }] }),
+  req('Repartidor por id', 'GET', 'courier_url', '/{{courier_id}}', { auth: 'admin', codes: [200] }),
+  req('Listar repartidores', 'GET', 'courier_url', '', { auth: 'admin', codes: [200], query: [{ key: 'limit', value: '20' }] }),
 ]);
 
 const orders = folder('5. Órdenes (order)', 'Montos en CLP calculados por el servidor con precios del catálogo y USD congelado al crear la orden. Guarda `order_id`, `order_total_usd` y `order_total_clp`.', [
