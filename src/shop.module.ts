@@ -5,6 +5,8 @@ import { ProductRepositoryImpl } from './infrastructure/repository/product.repos
 import { ShopController } from './infrastructure/shop.controller';
 import { ProductRepositorySymbol } from './domain/repository/product.repository';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { CreateProductUseCase } from './application/create-product.application';
 import { GetProductByIdUseCase } from './application/get-product-by-id.application';
 import { GetProductsUseCase } from './application/get-products.application';
@@ -20,9 +22,13 @@ import { CreateCategoryUseCase } from './application/create-category.application
       envFilePath: `.env.${process.env.NODE_ENV || 'local'}`,
       isGlobal: true,
     }),
+    // Límite por defecto de peticiones por IP (anti abuso)
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
   ],
   controllers: [ShopController],
   providers: [
+    // Guard global de rate limiting
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     CreateProductUseCase,
     GetProductByIdUseCase,
     GetProductsUseCase,
