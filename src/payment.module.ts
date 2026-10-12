@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { PaymentController } from './infrastructure/payment.controller';
 import { PaymentRepositorySymbol } from './domain/repository/payment.repository';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { CreatePaymentUseCase } from './application/use-cases/create-payment.use-case';
 import { ConfirmPaymentUseCase } from './application/use-cases/confirm-payment.use-case';
 import { PaymentRepositoryImpl } from './infrastructure/repository/payment.repository.impl';
@@ -23,10 +25,14 @@ import { OrderHttpClientImpl } from './infrastructure/clients/order-http.client'
       envFilePath: `.env.${process.env.NODE_ENV || 'local'}`,
       isGlobal: true,
     }),
+    // Límite por defecto de peticiones por IP (anti abuso)
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
   ],
   controllers: [PaymentController],
 
   providers: [
+    // Guard global de rate limiting
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     // =============================
     // APPLICATION (Use Cases)
     // =============================
