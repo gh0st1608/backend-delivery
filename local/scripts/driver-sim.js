@@ -10,8 +10,8 @@
 //
 //   --order <id|latest>  Orden a repartir. "latest" toma la más reciente pagada.
 //   --deliver            Marca DELIVERED al llegar (si no, lo confirma el cliente).
-//   --steps <n>          Tramos del recorrido pickup->dropoff (por defecto 12).
-//   --interval <ms>      Tiempo entre emisiones de ubicación (por defecto 2500).
+//   --steps <n>          Puntos emitidos a lo largo de la ruta (por defecto 18).
+//   --interval <ms>      Tiempo entre emisiones de ubicación (por defecto 1800).
 //   --internal-key <k>   INTERNAL_API_KEY (por defecto se lee de backend-order/.env.local).
 //   --order-base <url>   Por defecto http://localhost:3004/order
 //   --socket <url>       Por defecto http://localhost:3004
@@ -33,8 +33,8 @@ const args = Object.fromEntries(
 const ORDER_BASE = args["order-base"] || "http://localhost:3004/order";
 const SOCKET_URL = args.socket || "http://localhost:3004";
 const ENDPOINT = args.endpoint || "http://localhost:4566";
-const STEPS = Number(args.steps) || 12;
-const INTERVAL = Number(args.interval) || 2500;
+const STEPS = Number(args.steps) || 18;      // puntos emitidos a lo largo de la ruta
+const INTERVAL = Number(args.interval) || 1800;
 const DELIVER = !!args.deliver;
 
 const readEnv = (file, key) => {
@@ -96,6 +96,31 @@ async function setStatus(orderId, statusDelivery) {
   if (!res.ok) log(`  ${JSON.stringify(await res.json().catch(() => ({})))}`);
 }
 
+// Ruta por calles (OSRM público, gratis) entre dos puntos. Devuelve los
+// puntos de la geometría [{lat,lng}]; null si OSRM no responde (-> línea recta).
+async function fetchRoadRoute(from, to) {
+  const url = `https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=full&geometries=geojson`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const coords = data?.routes?.[0]?.geometry?.coordinates;
+    if (coords && coords.length >= 2) return coords.map(([lng, lat]) => ({ lat, lng }));
+  } catch {
+    /* sin ruta: se usa línea recta */
+  }
+  return null;
+}
+
+// Toma n puntos equiespaciados (incluye extremos) para no emitir cientos.
+function sampleEvenly(points, n) {
+  if (points.length <= n) return points;
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    out.push(points[Math.round((i * (points.length - 1)) / (n - 1))]);
+  }
+  return out;
+}
+
 function emitLocation(socket, orderId, courierId, lat, lng) {
   return new Promise((resolve) => {
     let done = false;
@@ -146,13 +171,25 @@ function emitLocation(socket, orderId, courierId, lat, lng) {
   await emitLocation(socket, orderId, courierId, pickup.lat, pickup.lng);
   await sleep(INTERVAL);
 
-  // 3) En camino: se mueve del local al cliente
+  // 3) En camino: sigue la ruta por calles (OSRM); si no, línea recta
   await setStatus(orderId, "ON_THE_WAY");
-  for (let i = 1; i <= STEPS; i++) {
-    const t = i / STEPS;
-    const lat = pickup.lat + (dropoff.lat - pickup.lat) * t;
-    const lng = pickup.lng + (dropoff.lng - pickup.lng) * t;
-    await emitLocation(socket, orderId, courierId, lat, lng);
+  const road = await fetchRoadRoute(pickup, dropoff);
+  let path;
+  if (road) {
+    path = sampleEvenly(road, Math.max(STEPS, 2));
+    log(`ruta por calles: ${road.length} puntos (OSRM); ${path.length} emisiones`);
+  } else {
+    log("OSRM no disponible: moviéndose en línea recta");
+    path = Array.from({ length: STEPS }, (_, i) => {
+      const t = (i + 1) / STEPS;
+      return {
+        lat: pickup.lat + (dropoff.lat - pickup.lat) * t,
+        lng: pickup.lng + (dropoff.lng - pickup.lng) * t,
+      };
+    });
+  }
+  for (const pt of path) {
+    await emitLocation(socket, orderId, courierId, pt.lat, pt.lng);
     await sleep(INTERVAL);
   }
 
