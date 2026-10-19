@@ -70,21 +70,43 @@ async function loadOrder() {
   return Item;
 }
 
+// Reintenta ante caídas transitorias del servicio (p. ej. el watcher de
+// nest recompilando y dejando el puerto sin escuchar un instante).
+async function withRetry(label, fn, attempts = 5) {
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (i === attempts) throw e;
+      log(`  ${label}: intento ${i} falló (${e.message}); reintentando…`);
+      await sleep(1500);
+    }
+  }
+}
+
 async function setStatus(orderId, statusDelivery) {
-  const res = await fetch(`${ORDER_BASE}/${orderId}/status`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", "x-internal-api-key": INTERNAL_KEY },
-    body: JSON.stringify({ Data: { Order: { statusDelivery } } }),
-  });
+  const res = await withRetry(`estado ${statusDelivery}`, () =>
+    fetch(`${ORDER_BASE}/${orderId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "x-internal-api-key": INTERNAL_KEY },
+      body: JSON.stringify({ Data: { Order: { statusDelivery } } }),
+    }),
+  );
   log(`estado -> ${statusDelivery} (HTTP ${res.status})`);
   if (!res.ok) log(`  ${JSON.stringify(await res.json().catch(() => ({})))}`);
 }
 
 function emitLocation(socket, orderId, courierId, lat, lng) {
   return new Promise((resolve) => {
+    let done = false;
+    const finish = (ack) => { if (!done) { done = true; resolve(ack); } };
+    // Si el socket está reconectando, socket.io encola el emit; no bloqueamos
+    // el recorrido más de 4 s esperando el ack.
+    const timer = setTimeout(() => { log(`ubicación ${lat.toFixed(5)},${lng.toFixed(5)} -> (sin ack, continúo)`); finish(null); }, 4000);
     socket.emit("order.tracking.update", { Data: { Courier: { orderId, courierId, location: { lat, lng } } } }, (ack) => {
+      clearTimeout(timer);
       log(`ubicación ${lat.toFixed(5)},${lng.toFixed(5)} -> ${JSON.stringify(ack)}`);
-      resolve(ack);
+      finish(ack);
     });
   });
 }
